@@ -1,0 +1,1347 @@
+{\rtf1\ansi\ansicpg874\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 <!DOCTYPE html>\
+<html lang="th">\
+<head>\
+    <meta charset="UTF-8">\
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">\
+    <title>\uc0\u3619 \u3632 \u3610 \u3610 \u3592 \u3633 \u3604 \u3585 \u3634 \u3619 \u3619 \u3606  (Fleet Management)</title>\
+    \
+    <script src="https://cdn.tailwindcss.com"></script>\
+    <script src="https://unpkg.com/lucide@latest"></script>\
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>\
+\
+    <style>\
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');\
+        body \{ font-family: 'Sarabun', sans-serif; \}\
+        \
+        /* \uc0\u3626 \u3585 \u3629 \u3619 \u3660 \u3610 \u3634 \u3619 \u3660  */\
+        ::-webkit-scrollbar \{ width: 6px; height: 6px; \}\
+        ::-webkit-scrollbar-track \{ background: transparent; \}\
+        ::-webkit-scrollbar-thumb \{ background: #cbd5e1; border-radius: 10px; \}\
+        ::-webkit-scrollbar-thumb:hover \{ background: #94a3b8; \}\
+        \
+        /* \uc0\u3650 \u3627 \u3621 \u3604 \u3648 \u3604 \u3629 \u3619 \u3660  */\
+        .spinner \{ animation: spin 1s linear infinite; \}\
+        @keyframes spin \{ 100% \{ transform: rotate(360deg); \} \}\
+\
+        /* \uc0\u3592 \u3633 \u3604 \u3651 \u3627 \u3657 \u3648 \u3609 \u3639 \u3657 \u3629 \u3627 \u3634 \u3627 \u3621 \u3633 \u3585 \u3648 \u3621 \u3639 \u3656 \u3629 \u3609 \u3652 \u3604 \u3657  \u3652 \u3617 \u3656 \u3650 \u3604 \u3609 \u3605 \u3633 \u3604  */\
+        .content-scroll \{\
+            height: calc(100vh - 80px);\
+            overflow-y: auto;\
+            overflow-x: hidden;\
+        \}\
+\
+        /* \uc0\u3626 \u3635 \u3627 \u3619 \u3633 \u3610  PIN Input */\
+        .pin-input \{\
+            letter-spacing: 0.5em;\
+            font-size: 2.5rem;\
+        \}\
+        .pin-input::placeholder \{\
+            letter-spacing: normal;\
+            font-size: 1.125rem;\
+            font-weight: normal;\
+        \}\
+    </style>\
+</head>\
+<body class="bg-slate-50 text-slate-800 flex h-screen overflow-hidden relative">\
+\
+    <!-- \uc0\u55357 \u56594  \u3627 \u3609 \u3657 \u3634 \u3592 \u3629 \u3651 \u3626 \u3656 \u3619 \u3627 \u3633 \u3626  PIN (\u3595 \u3657 \u3629 \u3609 \u3607 \u3633 \u3610 \u3607 \u3640 \u3585 \u3629 \u3618 \u3656 \u3634 \u3591 ) -->\
+    <div id="pinOverlay" class="fixed inset-0 bg-slate-900/95 z-[9999] flex items-center justify-center p-4 backdrop-blur-md hidden">\
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm text-center">\
+            <div class="mb-8">\
+                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">\
+                    <i data-lucide="lock" class="w-8 h-8"></i>\
+                </div>\
+                <h2 id="pinTitle" class="text-2xl font-bold text-slate-800">\uc0\u3585 \u3619 \u3640 \u3603 \u3634 \u3585 \u3619 \u3629 \u3585 \u3619 \u3627 \u3633 \u3626  PIN</h2>\
+                <p id="pinSubtitle" class="text-slate-500 mt-2 text-sm">\uc0\u3619 \u3632 \u3610 \u3640 \u3619 \u3627 \u3633 \u3626  4 \u3627 \u3621 \u3633 \u3585 \u3648 \u3614 \u3639 \u3656 \u3629 \u3648 \u3586 \u3657 \u3634 \u3651 \u3594 \u3657 \u3591 \u3634 \u3609 </p>\
+            </div>\
+            <div class="mb-6">\
+                <input type="password" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="4"\
+                       class="pin-input w-full text-center font-bold text-slate-800 bg-slate-50 border-2 border-slate-200 rounded-xl py-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"\
+                       placeholder="\uc0\u3585 \u3619 \u3629 \u3585 \u3619 \u3627 \u3633 \u3626  4 \u3627 \u3621 \u3633 \u3585 " oninput="handlePinInput(this.value)">\
+            </div>\
+            <button id="pinCancelBtn" onclick="cancelActionPin()" class="hidden w-full py-3 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold text-slate-600 transition-colors mt-2">\
+                \uc0\u3618 \u3585 \u3648 \u3621 \u3636 \u3585 \
+            </button>\
+        </div>\
+    </div>\
+\
+    <!-- Sidebar -->\
+    <aside class="w-72 bg-white border-r border-slate-200 flex flex-col shadow-sm flex-shrink-0 z-20">\
+        <div class="p-6 border-b border-slate-100 flex items-center space-x-3 flex-shrink-0">\
+            <div class="bg-blue-600 p-2 rounded-lg">\
+                <i data-lucide="layout-panel-left" class="h-6 w-6 text-white"></i>\
+            </div>\
+            <h1 class="text-xl font-bold text-slate-800">\uc0\u3619 \u3632 \u3610 \u3610 \u3592 \u3633 \u3604 \u3585 \u3634 \u3619 \u3619 \u3606 </h1>\
+        </div>\
+        <!-- \uc0\u3648 \u3617 \u3609 \u3641 \u3627 \u3621 \u3633 \u3585 \u3649 \u3610 \u3610  Tree View -->\
+        <nav class="flex-1 p-4 overflow-y-auto" id="nav-menu">\
+            <!-- \uc0\u3626 \u3619 \u3657 \u3634 \u3591 \u3612 \u3656 \u3634 \u3609  JS \u3629 \u3633 \u3605 \u3650 \u3609 \u3617 \u3633 \u3605 \u3636  -->\
+        </nav>\
+    </aside>\
+\
+    <!-- Main Content -->\
+    <main class="flex-1 flex flex-col min-w-0 h-screen">\
+        <header class="bg-white border-b border-slate-200 px-8 py-5 flex justify-between items-center z-10 flex-shrink-0 shadow-sm">\
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center">\
+                <span id="page-title">\uc0\u3616 \u3634 \u3614 \u3619 \u3623 \u3617 \u3612 \u3621 \u3611 \u3619 \u3632 \u3585 \u3629 \u3610 \u3585 \u3634 \u3619 </span>\
+                <span id="page-subtitle" class="ml-2 text-blue-600 text-lg font-medium hidden"></span>\
+            </h2>\
+            <div class="flex space-x-3">\
+                <button id="btn-add-new" class="hidden items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium">\
+                    <i data-lucide="plus-circle" class="h-4 w-4"></i>\
+                    <span>\uc0\u3648 \u3614 \u3636 \u3656 \u3617 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3651 \u3627 \u3617 \u3656 </span>\
+                </button>\
+            </div>\
+        </header>\
+\
+        <div class="content-scroll relative" id="main-content">\
+            <div class="p-8">\
+                <div id="loading-spinner" class="absolute inset-0 bg-slate-50/80 z-50 flex flex-col items-center justify-center hidden">\
+                    <div class="spinner rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>\
+                    <p class="text-slate-500 font-medium">\uc0\u3585 \u3635 \u3621 \u3633 \u3591 \u3650 \u3627 \u3621 \u3604 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3592 \u3634 \u3585 \u3600 \u3634 \u3609 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 ...</p>\
+                </div>\
+                <div id="tab-content" class="w-full"></div>\
+            </div>\
+        </div>\
+    </main>\
+\
+    <!-- Main Modal (\uc0\u3648 \u3614 \u3636 \u3656 \u3617 /\u3649 \u3585 \u3657 \u3652 \u3586  \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 ) -->\
+    <div id="main-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4">\
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all">\
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">\
+                <h3 id="modal-title" class="text-lg font-bold text-slate-800">\uc0\u3627 \u3633 \u3623 \u3586 \u3657 \u3629 </h3>\
+                <button id="btn-close-modal" class="text-slate-400 hover:text-slate-600 transition-colors">\
+                    <i data-lucide="x" class="h-5 w-5"></i>\
+                </button>\
+            </div>\
+            <form id="main-form" class="p-6 space-y-4"></form>\
+        </div>\
+    </div>\
+\
+    <!-- Map Modal -->\
+    <div id="map-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">\
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden">\
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white z-10 shadow-sm">\
+                <h3 class="text-lg font-bold text-slate-800 flex items-center">\
+                    <i data-lucide="map" class="h-5 w-5 mr-2 text-blue-600"></i>\
+                    \uc0\u3588 \u3657 \u3609 \u3627 \u3634 \u3626 \u3606 \u3634 \u3609 \u3607 \u3637 \u3656 \u3649 \u3621 \u3632 \u3588 \u3635 \u3609 \u3623 \u3603 \u3619 \u3632 \u3618 \u3632 \u3607 \u3634 \u3591 \u3592 \u3619 \u3636 \u3591 \
+                </h3>\
+                <button id="btn-close-map" class="text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 p-1.5 rounded-full">\
+                    <i data-lucide="x" class="h-5 w-5"></i>\
+                </button>\
+            </div>\
+            <div class="flex-1 relative w-full h-full bg-slate-100">\
+                <iframe id="map-iframe" class="w-full h-full border-none" sandbox="allow-scripts allow-same-origin"></iframe>\
+            </div>\
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">\
+                <button type="button" id="btn-close-map-bottom" class="px-6 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 font-medium">\uc0\u3611 \u3636 \u3604 \u3627 \u3609 \u3657 \u3634 \u3605 \u3656 \u3634 \u3591 \u3649 \u3612 \u3609 \u3607 \u3637 \u3656 </button>\
+            </div>\
+        </div>\
+    </div>\
+\
+    <script>\
+        // \uc0\u55357 \u56391 \u55357 \u56391 \u55357 \u56391  \u3609 \u3635  URL \u3586 \u3629 \u3591  Google Apps Script \u3617 \u3634 \u3651 \u3626 \u3656 \u3605 \u3619 \u3591 \u3609 \u3637 \u3657  \u55357 \u56391 \u55357 \u56391 \u55357 \u56391 \
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxRVpvho5238-scXeZAtdpES-21NvQdGTD_V4UzwZJtz2CnNJQEqSz21qnZiCjGNYlGFw/exec";\
+\
+        // ==========================================\
+        // \uc0\u55357 \u56594  \u3605 \u3633 \u3657 \u3591 \u3588 \u3656 \u3634 \u3619 \u3627 \u3633 \u3626 \u3612 \u3656 \u3634 \u3609  PIN \u3607 \u3637 \u3656 \u3609 \u3637 \u3656 \
+        // ==========================================\
+        const LOGIN_PIN = "8899";  // \uc0\u3619 \u3627 \u3633 \u3626 \u3648 \u3586 \u3657 \u3634 \u3648 \u3623 \u3655 \u3610 \u3652 \u3595 \u3605 \u3660 \
+        const ACTION_PIN = "2233"; // \uc0\u3619 \u3627 \u3633 \u3626 \u3626 \u3635 \u3627 \u3619 \u3633 \u3610 \u3649 \u3585 \u3657 \u3652 \u3586 /\u3621 \u3610 \
+        // ==========================================\
+\
+        let state = \{\
+            activeCategory: 'flatbed', // \uc0\u3627 \u3617 \u3623 \u3604 \u3627 \u3617 \u3641 \u3656 \u3607 \u3637 \u3656 \u3651 \u3594 \u3657 \u3591 \u3634 \u3609 \u3629 \u3618 \u3641 \u3656 : 'flatbed' \u3627 \u3619 \u3639 \u3629  'semidump'\
+            activeTab: 'overview',\
+            filterYear: null,\
+            filterMonth: null,\
+            filterPeriod: null,\
+            expandedTree: \{ \
+                'flatbed_y2569': true, 'flatbed_y2569m6': true,\
+                'semidump_y2569': true, 'semidump_y2569m6': true \
+            \},\
+            trips: [],\
+            refuels: [],\
+            vehicles: [],\
+            jobs: [],\
+            editMode: false,\
+            formData: \{\},\
+            charts: \{\}\
+        \};\
+\
+        const monthNames = ["\uc0\u3617 \u3585 \u3619 \u3634 \u3588 \u3617 ", "\u3585 \u3640 \u3617 \u3616 \u3634 \u3614 \u3633 \u3609 \u3608 \u3660 ", "\u3617 \u3637 \u3609 \u3634 \u3588 \u3617 ", "\u3648 \u3617 \u3625 \u3634 \u3618 \u3609 ", "\u3614 \u3620 \u3625 \u3616 \u3634 \u3588 \u3617 ", "\u3617 \u3636 \u3606 \u3640 \u3609 \u3634 \u3618 \u3609 ", "\u3585 \u3619 \u3585 \u3598 \u3634 \u3588 \u3617 ", "\u3626 \u3636 \u3591 \u3627 \u3634 \u3588 \u3617 ", "\u3585 \u3633 \u3609 \u3618 \u3634 \u3618 \u3609 ", "\u3605 \u3640 \u3621 \u3634 \u3588 \u3617 ", "\u3614 \u3620 \u3624 \u3592 \u3636 \u3585 \u3634 \u3618 \u3609 ", "\u3608 \u3633 \u3609 \u3623 \u3634 \u3588 \u3617 "];\
+        const formatCurrency = (num) => new Intl.NumberFormat('th-TH', \{ style: 'currency', currency: 'THB', minimumFractionDigits: 0 \}).format(num || 0);\
+        const formatNumber = (num) => new Intl.NumberFormat('th-TH', \{ minimumFractionDigits: 2, maximumFractionDigits: 2 \}).format(num || 0);\
+        \
+        const getToday = () => \{\
+            const tzoffset = (new Date()).getTimezoneOffset() * 60000;\
+            return (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];\
+        \};\
+\
+        const formatToThaiShort = (isoDate) => \{\
+            if(!isoDate) return '';\
+            const parts = isoDate.split('-');\
+            if(parts.length !== 3) return isoDate;\
+            let y = parseInt(parts[0], 10);\
+            if (y < 2500) y += 543;\
+            return parseInt(parts[2], 10) + '/' + parseInt(parts[1], 10) + '/' + y;\
+        \};\
+\
+        const formatDisplayDate = (rawDate) => \{\
+            if (!rawDate) return '-';\
+            const strDate = String(rawDate);\
+            if (strDate.includes('T')) \{\
+                const d = new Date(strDate);\
+                if (!isNaN(d.getTime())) \{\
+                    let y = d.getFullYear();\
+                    if (y >= 1900 && y < 2000) y = 2500 + (y % 100);\
+                    else if (y >= 2000 && y < 2500) y += 543;\
+                    return d.getDate() + '/' + (d.getMonth() + 1) + '/' + y;\
+                \}\
+            \}\
+            return strDate;\
+        \};\
+\
+        const reverseThaiToISO = (thaiDate) => \{\
+            if(!thaiDate) return getToday();\
+            const strDate = String(thaiDate);\
+            if(strDate.includes('T')) \{\
+                const d = new Date(strDate);\
+                if(!isNaN(d.getTime())) \{\
+                    let y = d.getFullYear();\
+                    if (y >= 1900 && y < 2000) y = 2000 + (y % 100) - 43; \
+                    else if (y > 2500) y -= 543;\
+                    return y + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');\
+                \}\
+            \}\
+            const parts = strDate.split('/');\
+            if(parts.length !== 3) return getToday();\
+            let y = parseInt(parts[2], 10);\
+            if(y > 2500) y -= 543;\
+            else if(y < 100) y = 2000 + y;\
+            const m = parts[1].padStart(2, '0');\
+            const d = parts[0].padStart(2, '0');\
+            return y + '-' + m + '-' + d;\
+        \};\
+\
+        // --- \uc0\u3619 \u3632 \u3610 \u3610 \u3588 \u3623 \u3634 \u3617 \u3611 \u3621 \u3629 \u3604 \u3616 \u3633 \u3618  PIN ---\
+        window.pendingActionFunc = null;\
+\
+        window.showPinModal = (type) => \{\
+            const overlay = document.getElementById('pinOverlay');\
+            const input = document.getElementById('pinInput');\
+            const title = document.getElementById('pinTitle');\
+            const subtitle = document.getElementById('pinSubtitle');\
+            const cancelBtn = document.getElementById('pinCancelBtn');\
+\
+            input.value = "";\
+            overlay.dataset.pinType = type;\
+\
+            if (type === 'login') \{\
+                title.innerText = "\uc0\u3585 \u3619 \u3640 \u3603 \u3634 \u3585 \u3619 \u3629 \u3585 \u3619 \u3627 \u3633 \u3626  PIN";\
+                subtitle.innerText = "\uc0\u3619 \u3632 \u3610 \u3640 \u3619 \u3627 \u3633 \u3626  4 \u3627 \u3621 \u3633 \u3585 \u3648 \u3614 \u3639 \u3656 \u3629 \u3648 \u3586 \u3657 \u3634 \u3651 \u3594 \u3657 \u3591 \u3634 \u3609 \u3619 \u3632 \u3610 \u3610 ";\
+                cancelBtn.classList.add('hidden');\
+            \} else \{\
+                title.innerText = "\uc0\u3618 \u3639 \u3609 \u3618 \u3633 \u3609 \u3605 \u3633 \u3623 \u3605 \u3609 ";\
+                subtitle.innerText = "\uc0\u3585 \u3619 \u3640 \u3603 \u3634 \u3585 \u3619 \u3629 \u3585 \u3619 \u3627 \u3633 \u3626  PIN \u3648 \u3614 \u3639 \u3656 \u3629 \u3649 \u3585 \u3657 \u3652 \u3586 \u3627 \u3619 \u3639 \u3629 \u3621 \u3610 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 ";\
+                cancelBtn.classList.remove('hidden');\
+            \}\
+\
+            overlay.classList.remove('hidden');\
+            setTimeout(() => input.focus(), 100);\
+        \};\
+\
+        window.handlePinInput = (val) => \{\
+            const cleanVal = val.replace(/\\D/g, '');\
+            const input = document.getElementById('pinInput');\
+            input.value = cleanVal;\
+\
+            if (cleanVal.length === 4) \{\
+                const type = document.getElementById('pinOverlay').dataset.pinType;\
+                const expected = (type === 'login') ? LOGIN_PIN : ACTION_PIN;\
+\
+                setTimeout(() => \{\
+                    if (cleanVal === expected) \{\
+                        document.getElementById('pinOverlay').classList.add('hidden');\
+                        if (type === 'login') \{\
+                            initApp(); // \uc0\u3650 \u3627 \u3621 \u3604 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3588 \u3619 \u3633 \u3657 \u3591 \u3649 \u3619 \u3585 \u3627 \u3621 \u3633 \u3591 \u3648 \u3586 \u3657 \u3634 \u3626 \u3641 \u3656 \u3619 \u3632 \u3610 \u3610 \
+                        \} else if (window.pendingActionFunc) \{\
+                            window.pendingActionFunc();\
+                            window.pendingActionFunc = null;\
+                        \}\
+                    \} else \{\
+                        alert("\uc0\u3619 \u3627 \u3633 \u3626  PIN \u3652 \u3617 \u3656 \u3606 \u3641 \u3585 \u3605 \u3657 \u3629 \u3591 !");\
+                        input.value = "";\
+                        input.focus();\
+                    \}\
+                \}, 150);\
+            \}\
+        \};\
+\
+        window.cancelActionPin = () => \{\
+            document.getElementById('pinOverlay').classList.add('hidden');\
+            window.pendingActionFunc = null;\
+            document.getElementById('pinInput').value = "";\
+        \};\
+\
+        window.requestActionPin = (funcString) => \{\
+            window.pendingActionFunc = new Function(funcString);\
+            showPinModal('action');\
+        \};\
+\
+        // --- \uc0\u3619 \u3632 \u3610 \u3610  UI & Tree Navigation \u3649 \u3618 \u3585 \u3627 \u3617 \u3623 \u3604 \u3627 \u3617 \u3641 \u3656  ---\
+        window.toggleTree = (key) => \{\
+            state.expandedTree[key] = !state.expandedTree[key];\
+            renderNav();\
+        \};\
+\
+        window.changeTab = (category, tabId) => \{\
+            state.activeCategory = category;\
+            state.activeTab = tabId;\
+            state.filterYear = null;\
+            state.filterMonth = null;\
+            state.filterPeriod = null;\
+            renderNav();\
+            renderContent();\
+        \};\
+\
+        window.changeTabPeriod = (category, tabId, year, month, period) => \{\
+            state.activeCategory = category;\
+            state.activeTab = tabId;\
+            state.filterYear = year;\
+            state.filterMonth = month;\
+            state.filterPeriod = period;\
+            renderNav();\
+            renderContent();\
+        \};\
+\
+        const categories = [\
+            \{ id: 'flatbed', label: '\uc0\u3619 \u3606 \u3614 \u3639 \u3657 \u3609 \u3648 \u3619 \u3637 \u3618 \u3610 ', icon: 'truck' \},\
+            \{ id: 'semidump', label: '\uc0\u3619 \u3606 \u3648 \u3595 \u3617 \u3636 \u3604 \u3633 \u3658 \u3617 ', icon: 'combine' \}\
+        ];\
+\
+        function renderNav() \{\
+            const navMenu = document.getElementById('nav-menu');\
+            let html = '';\
+\
+            categories.forEach(cat => \{\
+                html += `<div class="mb-10">`;\
+                html += `\
+                    <h3 class="px-2 text-[17px] font-extrabold text-blue-900 mb-4 flex items-center">\
+                        <div class="bg-blue-100 p-1.5 rounded-lg mr-2"><i data-lucide="$\{cat.icon\}" class="w-5 h-5 text-blue-600"></i></div>\
+                        $\{cat.label\}\
+                    </h3>\
+                `;\
+                \
+                const isOv = state.activeCategory === cat.id && state.activeTab === 'overview';\
+                html += `\
+                    <button onclick="changeTab('$\{cat.id\}', 'overview')" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all mb-4 $\{isOv ? 'bg-blue-50 text-blue-700 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-100'\}">\
+                        <i data-lucide="layout-dashboard" class="h-5 w-5"></i><span>\uc0\u3616 \u3634 \u3614 \u3619 \u3623 \u3617  (Dashboard)</span>\
+                    </button>\
+                `;\
+\
+                const treeYears = [\
+                    \{ year: 2569, startMonth: 6, endMonth: 12 \},\
+                    \{ year: 2570, startMonth: 1, endMonth: 12 \}\
+                ];\
+\
+                html += `<div class="space-y-1 mb-4 font-sans">`;\
+                treeYears.forEach(y => \{\
+                    const yKey = `$\{cat.id\}_y$\{y.year\}`;\
+                    const isYOpen = state.expandedTree[yKey];\
+                    html += `\
+                        <div>\
+                            <button onclick="toggleTree('$\{yKey\}')" class="flex items-center w-full text-left font-bold text-slate-700 px-2 py-2 hover:bg-slate-100 rounded-lg transition-colors text-[15px]">\
+                                <i data-lucide="$\{isYOpen ? 'chevron-down' : 'chevron-right'\}" class="w-4 h-4 mr-2 text-slate-400"></i>\
+                                \uc0\u3611 \u3637  $\{y.year.toString().slice(-2)\}\
+                            </button>\
+                    `;\
+                    if (isYOpen) \{\
+                        html += `<div class="ml-4 border-l-2 border-slate-200 pl-3 mt-1 space-y-1">`;\
+                        for (let m = y.startMonth; m <= y.endMonth; m++) \{\
+                            const mKey = `$\{cat.id\}_y$\{y.year\}m$\{m\}`;\
+                            const isMOpen = state.expandedTree[mKey];\
+                            html += `\
+                                <div>\
+                                    <button onclick="toggleTree('$\{mKey\}')" class="flex items-center w-full text-left font-semibold text-slate-600 px-2 py-1.5 hover:text-blue-600 hover:bg-slate-50 rounded-lg transition-colors text-[14px]">\
+                                        <i data-lucide="$\{isMOpen ? 'chevron-down' : 'chevron-right'\}" class="w-4 h-4 mr-2 text-slate-400"></i>\
+                                        $\{monthNames[m-1]\}\
+                                    </button>\
+                            `;\
+                            if (isMOpen) \{\
+                                html += `<div class="ml-4 border-l-2 border-slate-200 pl-4 mt-1 py-1 space-y-4 relative">`;\
+\
+                                // Period 1\
+                                const p1TripsActive = state.activeCategory === cat.id && state.activeTab === 'trips' && state.filterYear === y.year && state.filterMonth === m && state.filterPeriod === 1;\
+                                const p1RefuelsActive = state.activeCategory === cat.id && state.activeTab === 'refuels' && state.filterYear === y.year && state.filterMonth === m && state.filterPeriod === 1;\
+                                html += `\
+                                    <div class="relative">\
+                                        <div class="absolute -left-4 top-2.5 w-4 border-t-2 border-slate-200"></div>\
+                                        <div class="text-[13px] font-bold text-slate-500 mb-1 ml-1">1-15 $\{monthNames[m-1]\}</div>\
+                                        <button onclick="changeTabPeriod('$\{cat.id\}', 'trips', $\{y.year\}, $\{m\}, 1)" class="flex items-center w-full text-left px-3 py-1.5 rounded-lg mb-0.5 text-[13px] transition-colors $\{p1TripsActive ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 hover:bg-slate-100'\}">\
+                                            <i data-lucide="map-pin" class="w-3.5 h-3.5 mr-2"></i>\uc0\u3619 \u3634 \u3618 \u3585 \u3634 \u3619 \u3623 \u3636 \u3656 \u3591 \u3591 \u3634 \u3609 \
+                                        </button>\
+                                        <button onclick="changeTabPeriod('$\{cat.id\}', 'refuels', $\{y.year\}, $\{m\}, 1)" class="flex items-center w-full text-left px-3 py-1.5 rounded-lg text-[13px] transition-colors $\{p1RefuelsActive ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 hover:bg-slate-100'\}">\
+                                            <i data-lucide="droplet" class="w-3.5 h-3.5 mr-2"></i>\uc0\u3619 \u3634 \u3618 \u3585 \u3634 \u3619 \u3648 \u3605 \u3636 \u3617 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609 \
+                                        </button>\
+                                    </div>\
+                                `;\
+\
+                                // Period 2\
+                                const p2TripsActive = state.activeCategory === cat.id && state.activeTab === 'trips' && state.filterYear === y.year && state.filterMonth === m && state.filterPeriod === 2;\
+                                const p2RefuelsActive = state.activeCategory === cat.id && state.activeTab === 'refuels' && state.filterYear === y.year && state.filterMonth === m && state.filterPeriod === 2;\
+                                html += `\
+                                    <div class="relative">\
+                                        <div class="absolute -left-4 top-2.5 w-4 border-t-2 border-slate-200"></div>\
+                                        <div class="text-[13px] font-bold text-slate-500 mb-1 ml-1">16-\uc0\u3626 \u3636 \u3657 \u3609 \u3648 \u3604 \u3639 \u3629 \u3609  $\{monthNames[m-1]\}</div>\
+                                        <button onclick="changeTabPeriod('$\{cat.id\}', 'trips', $\{y.year\}, $\{m\}, 2)" class="flex items-center w-full text-left px-3 py-1.5 rounded-lg mb-0.5 text-[13px] transition-colors $\{p2TripsActive ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 hover:bg-slate-100'\}">\
+                                            <i data-lucide="map-pin" class="w-3.5 h-3.5 mr-2"></i>\uc0\u3619 \u3634 \u3618 \u3585 \u3634 \u3619 \u3623 \u3636 \u3656 \u3591 \u3591 \u3634 \u3609 \
+                                        </button>\
+                                        <button onclick="changeTabPeriod('$\{cat.id\}', 'refuels', $\{y.year\}, $\{m\}, 2)" class="flex items-center w-full text-left px-3 py-1.5 rounded-lg text-[13px] transition-colors $\{p2RefuelsActive ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 hover:bg-slate-100'\}">\
+                                            <i data-lucide="droplet" class="w-3.5 h-3.5 mr-2"></i>\uc0\u3619 \u3634 \u3618 \u3585 \u3634 \u3619 \u3648 \u3605 \u3636 \u3617 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609 \
+                                        </button>\
+                                    </div>\
+                                `;\
+                                html += `</div>`;\
+                            \}\
+                            html += `</div>`;\
+                        \}\
+                        html += `</div>`;\
+                    \}\
+                    html += `</div>`;\
+                \});\
+                html += `</div>`;\
+\
+                const isJobs = state.activeCategory === cat.id && state.activeTab === 'jobs';\
+                const isVehicles = state.activeCategory === cat.id && state.activeTab === 'vehicles';\
+                html += `\
+                    <div class="border-t border-slate-100 pt-4 space-y-1">\
+                        <button onclick="changeTab('$\{cat.id\}', 'jobs')" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all $\{isJobs ? 'bg-blue-50 text-blue-700 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-100'\}">\
+                            <i data-lucide="map" class="h-5 w-5"></i><span>\uc0\u3648 \u3626 \u3657 \u3609 \u3607 \u3634 \u3591 \u3649 \u3621 \u3632 \u3648 \u3619 \u3607 \u3619 \u3634 \u3588 \u3634 </span>\
+                        </button>\
+                        <button onclick="changeTab('$\{cat.id\}', 'vehicles')" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all $\{isVehicles ? 'bg-blue-50 text-blue-700 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-100'\}">\
+                            <i data-lucide="users" class="h-5 w-5"></i><span>\uc0\u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3619 \u3606 \u3649 \u3621 \u3632 \u3588 \u3609 \u3586 \u3633 \u3610 </span>\
+                        </button>\
+                    </div>\
+                `;\
+                html += `</div>`;\
+            \});\
+\
+            navMenu.innerHTML = html;\
+\
+            const catName = state.activeCategory === 'flatbed' ? '\uc0\u3619 \u3606 \u3614 \u3639 \u3657 \u3609 \u3648 \u3619 \u3637 \u3618 \u3610 ' : '\u3619 \u3606 \u3648 \u3595 \u3617 \u3636 \u3604 \u3633 \u3658 \u3617 ';\
+            const titleObj = \{\
+                'overview': `\uc0\u3616 \u3634 \u3614 \u3619 \u3623 \u3617 \u3612 \u3621 \u3611 \u3619 \u3632 \u3585 \u3629 \u3610 \u3585 \u3634 \u3619 `, \
+                'trips': `\uc0\u3619 \u3634 \u3618 \u3621 \u3632 \u3648 \u3629 \u3637 \u3618 \u3604 \u3585 \u3634 \u3619 \u3623 \u3636 \u3656 \u3591 \u3591 \u3634 \u3609 `, \
+                'refuels': `\uc0\u3611 \u3619 \u3632 \u3623 \u3633 \u3605 \u3636 \u3585 \u3634 \u3619 \u3648 \u3605 \u3636 \u3617 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609 `, \
+                'jobs': `\uc0\u3600 \u3634 \u3609 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3648 \u3626 \u3657 \u3609 \u3607 \u3634 \u3591 \u3649 \u3621 \u3632 \u3648 \u3619 \u3607 \u3619 \u3634 \u3588 \u3634 \u3617 \u3634 \u3605 \u3619 \u3600 \u3634 \u3609 `, \
+                'vehicles': `\uc0\u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3619 \u3606 \u3649 \u3621 \u3632 \u3588 \u3609 \u3586 \u3633 \u3610 `\
+            \};\
+            document.getElementById('page-title').innerHTML = `$\{titleObj[state.activeTab]\} <span class="text-blue-700 text-lg font-bold ml-3 bg-blue-50 border border-blue-200 px-3 py-1 rounded-lg">$\{catName\}</span>`;\
+            \
+            const btnAdd = document.getElementById('btn-add-new');\
+            if(state.activeTab !== 'overview') \{\
+                btnAdd.classList.remove('hidden');\
+                btnAdd.classList.add('flex');\
+            \} else \{\
+                btnAdd.classList.add('hidden');\
+                btnAdd.classList.remove('flex');\
+            \}\
+\
+            const subTitle = document.getElementById('page-subtitle');\
+            if (state.filterYear && state.filterMonth && state.filterPeriod) \{\
+                const periodText = state.filterPeriod === 1 ? '1-15' : '16-\uc0\u3626 \u3636 \u3657 \u3609 \u3648 \u3604 \u3639 \u3629 \u3609 ';\
+                subTitle.innerText = `($\{periodText\} $\{monthNames[state.filterMonth - 1]\} $\{state.filterYear.toString().slice(-2)\})`;\
+                subTitle.classList.remove('hidden');\
+            \} else \{\
+                subTitle.classList.add('hidden');\
+            \}\
+\
+            lucide.createIcons();\
+        \}\
+\
+        // --- \uc0\u3619 \u3632 \u3610 \u3610 \u3585 \u3619 \u3629 \u3591 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621  (Filter Data) ---\
+        function getFiltered(dataArr) \{\
+            return dataArr.filter(item => \{\
+                const itemCat = item.category || 'flatbed';\
+                if (itemCat !== state.activeCategory) return false;\
+\
+                let matchPeriod = true;\
+                if (state.filterYear && state.filterMonth && state.filterPeriod && item.date) \{\
+                    const dateStr = formatDisplayDate(item.date);\
+                    if (dateStr !== '-') \{\
+                        const parts = dateStr.split('/');\
+                        if (parts.length === 3) \{\
+                            const d = parseInt(parts[0], 10);\
+                            const m = parseInt(parts[1], 10);\
+                            const y = parseInt(parts[2], 10);\
+                            const p = d <= 15 ? 1 : 2;\
+                            matchPeriod = (y === state.filterYear && m === state.filterMonth && p === state.filterPeriod);\
+                        \} else \{ matchPeriod = false; \}\
+                    \} else \{ matchPeriod = false; \}\
+                \}\
+                return matchPeriod;\
+            \});\
+        \}\
+\
+        function renderContent() \{\
+            const container = document.getElementById('tab-content');\
+            container.innerHTML = ''; \
+            if (state.activeTab === 'overview') renderOverview(container);\
+            else if (state.activeTab === 'trips') renderTrips(container);\
+            else if (state.activeTab === 'jobs') renderJobs(container);\
+            else if (state.activeTab === 'refuels') renderRefuels(container);\
+            else if (state.activeTab === 'vehicles') renderVehicles(container);\
+            lucide.createIcons();\
+        \}\
+\
+        // --- Renders Tab ---\
+        function renderOverview(container) \{\
+            const filteredTrips = getFiltered(state.trips);\
+            const filteredRefuels = getFiltered(state.refuels);\
+\
+            const totalRevenue = filteredTrips.reduce((s, t) => s + Number(t.revenue || 0), 0);\
+            const totalProfit = filteredTrips.reduce((s, t) => s + Number(t.profit || 0), 0);\
+            const totalRefuelAmount = filteredRefuels.reduce((s, r) => s + Number(r.total || 0), 0);\
+            const tripsCount = filteredTrips.length;\
+\
+            const dataMap = \{\};\
+            filteredTrips.forEach(trip => \{\
+                const formattedDate = formatDisplayDate(trip.date);\
+                const parts = String(formattedDate).split('/');\
+                if (parts.length === 3) \{\
+                    const day = parseInt(parts[0], 10);\
+                    const monthStr = monthNames[parseInt(parts[1], 10) - 1] || parts[1];\
+                    const year = parts[2];\
+                    const periodLabel = day <= 15 ? '\uc0\u3623 \u3633 \u3609 \u3607 \u3637 \u3656  1-15' : '\u3623 \u3633 \u3609 \u3607 \u3637 \u3656  16-\u3626 \u3636 \u3657 \u3609 \u3648 \u3604 \u3639 \u3629 \u3609 ';\
+                    const key = `$\{monthStr\} $\{year\} ($\{periodLabel\})`;\
+                    const order = parseInt(year) * 100 + parseInt(parts[1]) * 10 + (day <= 15 ? 1 : 2); \
+\
+                    if (!dataMap[key]) dataMap[key] = \{ name: key, \uc0\u3585 \u3635 \u3652 \u3619 : 0, \u3618 \u3629 \u3604 \u3619 \u3633 \u3610 : 0, \u3588 \u3656 \u3634 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609 : 0, order \};\
+                    dataMap[key].\uc0\u3585 \u3635 \u3652 \u3619  += Number(trip.profit || 0);\
+                    dataMap[key].\uc0\u3618 \u3629 \u3604 \u3619 \u3633 \u3610  += Number(trip.revenue || 0);\
+                    dataMap[key].\uc0\u3588 \u3656 \u3634 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609  += Number(trip.fuelCost || 0);\
+                \}\
+            \});\
+            const profitByPeriod = Object.values(dataMap).sort((a, b) => a.order - b.order);\
+\
+            let html = `\
+                <div class="space-y-6">\
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">\
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">\
+                            <div class="bg-green-100 p-4 rounded-xl text-green-600"><i data-lucide="dollar-sign" class="h-8 w-8"></i></div>\
+                            <div><p class="text-sm text-slate-500 font-medium">\uc0\u3585 \u3635 \u3652 \u3619 \u3626 \u3640 \u3607 \u3608 \u3636 \u3619 \u3623 \u3617 </p><p class="text-2xl font-bold text-slate-800">$\{formatCurrency(totalProfit)\}</p></div>\
+                        </div>\
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">\
+                            <div class="bg-blue-100 p-4 rounded-xl text-blue-600"><i data-lucide="truck" class="h-8 w-8"></i></div>\
+                            <div><p class="text-sm text-slate-500 font-medium">\uc0\u3618 \u3629 \u3604 \u3619 \u3633 \u3610 \u3626 \u3640 \u3607 \u3608 \u3636 \u3619 \u3623 \u3617 </p><p class="text-2xl font-bold text-slate-800">$\{formatCurrency(totalRevenue)\}</p></div>\
+                        </div>\
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">\
+                            <div class="bg-orange-100 p-4 rounded-xl text-orange-600"><i data-lucide="droplet" class="h-8 w-8"></i></div>\
+                            <div><p class="text-sm text-slate-500 font-medium">\uc0\u3618 \u3629 \u3604 \u3592 \u3656 \u3634 \u3618 \u3588 \u3656 \u3634 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609 \u3619 \u3623 \u3617 </p><p class="text-2xl font-bold text-slate-800">$\{formatCurrency(totalRefuelAmount)\}</p></div>\
+                        </div>\
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">\
+                            <div class="bg-purple-100 p-4 rounded-xl text-purple-600"><i data-lucide="map-pin" class="h-8 w-8"></i></div>\
+                            <div><p class="text-sm text-slate-500 font-medium">\uc0\u3592 \u3635 \u3609 \u3623 \u3609 \u3648 \u3607 \u3637 \u3656 \u3618 \u3623 \u3623 \u3636 \u3656 \u3591 </p><p class="text-2xl font-bold text-slate-800">$\{tripsCount\} <span class="text-base font-normal">\u3648 \u3607 \u3637 \u3656 \u3618 \u3623 </span></p></div>\
+                        </div>\
+                    </div>\
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">\
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">\
+                            <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center"><i data-lucide="calendar" class="h-5 w-5 mr-2 text-blue-500"></i>\uc0\u3585 \u3635 \u3652 \u3619 \u3619 \u3634 \u3618 \u3611 \u3633 \u3585 \u3625 \u3660 </h3>\
+                            <div class="h-80 w-full"><canvas id="chartBar"></canvas></div>\
+                        </div>\
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">\
+                            <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center"><i data-lucide="dollar-sign" class="h-5 w-5 mr-2 text-blue-500"></i>\uc0\u3649 \u3609 \u3623 \u3650 \u3609 \u3657 \u3617 \u3618 \u3629 \u3604 \u3619 \u3633 \u3610 \u3648 \u3607 \u3637 \u3618 \u3610 \u3585 \u3633 \u3610 \u3585 \u3635 \u3652 \u3619 </h3>\
+                            <div class="h-80 w-full"><canvas id="chartLine"></canvas></div>\
+                        </div>\
+                    </div>\
+                </div>\
+            `;\
+            container.innerHTML = html;\
+            setTimeout(() => drawCharts(profitByPeriod), 50);\
+        \}\
+\
+        function renderTrips(container) \{\
+            const data = getFiltered(state.trips);\
+            if (data.length === 0) \{\
+                container.innerHTML = '<div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 text-center text-slate-500">\uc0\u3652 \u3617 \u3656 \u3617 \u3637 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3585 \u3634 \u3619 \u3623 \u3636 \u3656 \u3591 \u3591 \u3634 \u3609 \u3651 \u3609 \u3594 \u3656 \u3623 \u3591 \u3648 \u3623 \u3621 \u3634 \u3609 \u3637 \u3657 </div>';\
+                return;\
+            \}\
+\
+            let grandTotalDist = 0, grandTotalRevenue = 0, grandTotalFuel = 0, grandTotalProfit = 0;\
+            data.forEach(t => \{\
+                grandTotalDist += Number(t.dist || 0); grandTotalRevenue += Number(t.revenue || 0);\
+                grandTotalFuel += Number(t.fuelCost || 0); grandTotalProfit += Number(t.profit || 0);\
+            \});\
+\
+            let html = `\
+                <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">\
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-center items-start">\
+                        <div class="flex items-center space-x-2 mb-2"><div class="bg-purple-100 p-1.5 rounded-lg text-purple-600"><i data-lucide="map-pin" class="w-4 h-4"></i></div><p class="text-xs text-slate-500 font-bold uppercase">\uc0\u3592 \u3635 \u3609 \u3623 \u3609 \u3648 \u3607 \u3637 \u3656 \u3618 \u3623 \u3619 \u3623 \u3617 </p></div>\
+                        <p class="text-xl font-bold text-slate-800">$\{data.length\} <span class="text-sm font-normal text-slate-500">\uc0\u3648 \u3607 \u3637 \u3656 \u3618 \u3623 </span></p>\
+                    </div>\
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-center items-start">\
+                        <div class="flex items-center space-x-2 mb-2"><div class="bg-indigo-100 p-1.5 rounded-lg text-indigo-600"><i data-lucide="route" class="w-4 h-4"></i></div><p class="text-xs text-slate-500 font-bold uppercase">\uc0\u3619 \u3632 \u3618 \u3632 \u3607 \u3634 \u3591 \u3619 \u3623 \u3617 </p></div>\
+                        <p class="text-xl font-bold text-slate-800">$\{formatNumber(grandTotalDist).replace(/\\.00$/, '')\} <span class="text-sm font-normal text-slate-500">\uc0\u3585 \u3617 .</span></p>\
+                    </div>\
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-center items-start">\
+                        <div class="flex items-center space-x-2 mb-2"><div class="bg-blue-100 p-1.5 rounded-lg text-blue-600"><i data-lucide="banknote" class="w-4 h-4"></i></div><p class="text-xs text-slate-500 font-bold uppercase">\uc0\u3618 \u3629 \u3604 \u3619 \u3633 \u3610 \u3619 \u3623 \u3617 </p></div>\
+                        <p class="text-xl font-bold text-blue-700">$\{formatCurrency(grandTotalRevenue)\}</p>\
+                    </div>\
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-center items-start">\
+                        <div class="flex items-center space-x-2 mb-2"><div class="bg-red-100 p-1.5 rounded-lg text-red-600"><i data-lucide="droplet" class="w-4 h-4"></i></div><p class="text-xs text-slate-500 font-bold uppercase">\uc0\u3588 \u3656 \u3634 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609 \u3619 \u3623 \u3617 </p></div>\
+                        <p class="text-xl font-bold text-red-600">$\{formatCurrency(grandTotalFuel)\}</p>\
+                    </div>\
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-center items-start">\
+                        <div class="flex items-center space-x-2 mb-2"><div class="bg-green-100 p-1.5 rounded-lg text-green-600"><i data-lucide="trending-up" class="w-4 h-4"></i></div><p class="text-xs text-slate-500 font-bold uppercase">\uc0\u3585 \u3635 \u3652 \u3619 \u3626 \u3640 \u3607 \u3608 \u3636 \u3619 \u3623 \u3617 </p></div>\
+                        <p class="text-xl font-bold text-green-600">$\{formatCurrency(grandTotalProfit)\}</p>\
+                    </div>\
+                </div>\
+                <div class="space-y-6">\
+            `;\
+\
+            const groupedTrips = data.reduce((acc, trip) => \{\
+                if (!acc[trip.plate]) acc[trip.plate] = [];\
+                acc[trip.plate].push(trip); return acc;\
+            \}, \{\});\
+\
+            for (const plate in groupedTrips) \{\
+                const trips = groupedTrips[plate];\
+                let sumDist = 0; let sumRevenue = 0; let sumFuel = 0; let sumProfit = 0;\
+                \
+                let rows = '';\
+                trips.forEach(t => \{\
+                    sumDist += Number(t.dist || 0); sumRevenue += Number(t.revenue || 0); sumFuel += Number(t.fuelCost || 0); sumProfit += Number(t.profit || 0);\
+                    rows += `\
+                        <tr class="hover:bg-slate-50 transition-colors">\
+                            <td class="p-4 text-slate-800">$\{formatDisplayDate(t.date)\}</td>\
+                            <td class="p-4 text-slate-600">$\{t.origin\}</td>\
+                            <td class="p-4 text-slate-600">$\{t.dest\}</td>\
+                            <td class="p-4 text-right tabular-nums text-slate-600">$\{t.dist\} \uc0\u3585 \u3617 .</td>\
+                            <td class="p-4 text-right tabular-nums font-medium text-slate-800">$\{formatCurrency(t.revenue)\}</td>\
+                            <td class="p-4 text-right tabular-nums text-red-500">$\{formatCurrency(t.fuelCost)\}</td>\
+                            <td class="p-4 text-right tabular-nums font-bold text-green-600">$\{formatCurrency(t.profit)\}</td>\
+                            <td class="p-4 text-center space-x-2">\
+                                <button onclick="requestActionPin('openEditModal(\\\\'$\{t.id\}\\\\', \\\\'trips\\\\')')" class="text-slate-400 hover:text-blue-500 p-1"><i data-lucide="edit" class="w-4 h-4"></i></button>\
+                                <button onclick="requestActionPin('deleteData(\\\\'$\{t.id\}\\\\', \\\\'deleteTrip\\\\', \\\\'trip\\\\')')" class="text-slate-400 hover:text-red-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>\
+                            </td>\
+                        </tr>\
+                    `;\
+                \});\
+\
+                const summaryRow = `\
+                    <tr class="bg-blue-50/60 font-bold border-t-2 border-blue-200">\
+                        <td colspan="3" class="p-4 text-right text-slate-700">\uc0\u3619 \u3623 \u3617 \u3607 \u3633 \u3657 \u3591 \u3627 \u3617 \u3604 :</td>\
+                        <td class="p-4 text-right tabular-nums text-slate-800">$\{formatNumber(sumDist).replace(/\\.00$/, '')\} \uc0\u3585 \u3617 .</td>\
+                        <td class="p-4 text-right tabular-nums text-blue-700">$\{formatCurrency(sumRevenue)\}</td>\
+                        <td class="p-4 text-right tabular-nums text-red-600">$\{formatCurrency(sumFuel)\}</td>\
+                        <td class="p-4 text-right tabular-nums text-green-600">$\{formatCurrency(sumProfit)\}</td>\
+                        <td class="p-4"></td>\
+                    </tr>\
+                `;\
+\
+                html += `\
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">\
+                        <div class="bg-blue-50/50 px-6 py-4 border-b border-slate-200 flex items-center space-x-3">\
+                            <div class="bg-blue-100 p-1.5 rounded-lg"><i data-lucide="truck" class="w-5 h-5 text-blue-600"></i></div>\
+                            <h3 class="text-lg font-bold text-slate-800">\uc0\u3607 \u3632 \u3648 \u3610 \u3637 \u3618 \u3609 \u3619 \u3606 : <span class="text-blue-700">$\{plate\}</span></h3>\
+                            <span class="text-sm font-medium text-slate-500 ml-2">($\{trips.length\} \uc0\u3648 \u3607 \u3637 \u3656 \u3618 \u3623 )</span>\
+                        </div>\
+                        <div class="overflow-x-auto">\
+                            <table class="w-full min-w-[800px] text-left border-collapse whitespace-nowrap table-fixed">\
+                                <thead>\
+                                    <tr class="bg-white text-slate-500 text-sm uppercase tracking-wider border-b border-slate-200">\
+                                        <th class="p-4 font-semibold w-28">\uc0\u3623 \u3633 \u3609 \u3607 \u3637 \u3656 </th>\
+                                        <th class="p-4 font-semibold w-40">\uc0\u3605 \u3657 \u3609 \u3607 \u3634 \u3591 </th>\
+                                        <th class="p-4 font-semibold w-40">\uc0\u3611 \u3621 \u3634 \u3618 \u3607 \u3634 \u3591 </th>\
+                                        <th class="p-4 font-semibold text-right w-28">\uc0\u3619 \u3632 \u3618 \u3632 \u3607 \u3634 \u3591 </th>\
+                                        <th class="p-4 font-semibold text-right w-32">\uc0\u3588 \u3656 \u3634 \u3648 \u3607 \u3637 \u3656 \u3618 \u3623 </th>\
+                                        <th class="p-4 font-semibold text-right w-32">\uc0\u3588 \u3656 \u3634 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609 </th>\
+                                        <th class="p-4 font-semibold text-right text-green-600 w-32">\uc0\u3585 \u3635 \u3652 \u3619 </th>\
+                                        <th class="p-4 font-semibold text-center w-24">\uc0\u3592 \u3633 \u3604 \u3585 \u3634 \u3619 </th>\
+                                    </tr>\
+                                </thead>\
+                                <tbody class="divide-y divide-slate-100">$\{rows\}$\{summaryRow\}</tbody>\
+                            </table>\
+                        </div>\
+                    </div>\
+                `;\
+            \}\
+            html += '</div>';\
+            container.innerHTML = html;\
+        \}\
+\
+        function renderJobs(container) \{\
+            const filteredJobs = state.jobs.filter(j => (j.category || 'flatbed') === state.activeCategory);\
+            let html = `\
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">\
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-center items-start">\
+                        <div class="flex items-center space-x-2 mb-2"><div class="bg-blue-100 p-1.5 rounded-lg text-blue-600"><i data-lucide="map" class="w-4 h-4"></i></div><p class="text-xs text-slate-500 font-bold uppercase">\uc0\u3648 \u3626 \u3657 \u3609 \u3607 \u3634 \u3591 \u3617 \u3634 \u3605 \u3619 \u3600 \u3634 \u3609 \u3619 \u3623 \u3617 </p></div>\
+                        <p class="text-xl font-bold text-slate-800">$\{filteredJobs.length\} <span class="text-sm font-normal text-slate-500">\uc0\u3648 \u3626 \u3657 \u3609 \u3607 \u3634 \u3591 </span></p>\
+                    </div>\
+                </div>\
+            `;\
+            let rows = '';\
+            filteredJobs.forEach(j => \{\
+                rows += `\
+                    <tr class="hover:bg-slate-50 transition-colors">\
+                        <td class="p-4 font-medium text-slate-800">$\{j.origin\}</td>\
+                        <td class="p-4 font-medium text-slate-800">$\{j.dest\}</td>\
+                        <td class="p-4 text-right tabular-nums text-slate-600">$\{j.dist\} \uc0\u3585 \u3617 .</td>\
+                        <td class="p-4 text-right tabular-nums font-bold text-blue-600">$\{formatCurrency(j.revenue)\}</td>\
+                        <td class="p-4 text-center space-x-2">\
+                            <button onclick="requestActionPin('openEditModal(\\\\'$\{j.id\}\\\\', \\\\'jobs\\\\')')" class="text-slate-400 hover:text-blue-500 p-1"><i data-lucide="edit" class="w-4 h-4"></i></button>\
+                            <button onclick="requestActionPin('deleteData(\\\\'$\{j.id\}\\\\', \\\\'deleteJob\\\\', \\\\'job\\\\')')" class="text-slate-400 hover:text-red-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>\
+                        </td>\
+                    </tr>\
+                `;\
+            \});\
+            if(filteredJobs.length === 0) rows = '<tr><td colSpan="5" class="p-8 text-center text-slate-500">\uc0\u3652 \u3617 \u3656 \u3617 \u3637 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3648 \u3626 \u3657 \u3609 \u3607 \u3634 \u3591  \u3585 \u3619 \u3640 \u3603 \u3634 \u3648 \u3614 \u3636 \u3656 \u3617 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3651 \u3627 \u3617 \u3656 </td></tr>';\
+\
+            html += `\
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">\
+                    <div class="overflow-x-auto">\
+                        <table class="w-full min-w-[600px] text-left border-collapse whitespace-nowrap table-fixed">\
+                            <thead>\
+                                <tr class="bg-slate-50 text-slate-500 text-sm uppercase tracking-wider border-b border-slate-200">\
+                                    <th class="p-4 font-semibold w-1/3">\uc0\u3605 \u3657 \u3609 \u3607 \u3634 \u3591 </th>\
+                                    <th class="p-4 font-semibold w-1/3">\uc0\u3611 \u3621 \u3634 \u3618 \u3607 \u3634 \u3591 </th>\
+                                    <th class="p-4 font-semibold text-right w-32">\uc0\u3619 \u3632 \u3618 \u3632 \u3607 \u3634 \u3591 </th>\
+                                    <th class="p-4 font-semibold text-right w-40">\uc0\u3648 \u3619 \u3607 \u3588 \u3656 \u3634 \u3648 \u3607 \u3637 \u3656 \u3618 \u3623 </th>\
+                                    <th class="p-4 font-semibold text-center w-24">\uc0\u3592 \u3633 \u3604 \u3585 \u3634 \u3619 </th>\
+                                </tr>\
+                            </thead>\
+                            <tbody class="divide-y divide-slate-100">$\{rows\}</tbody>\
+                        </table>\
+                    </div>\
+                </div>\
+            `;\
+            container.innerHTML = html;\
+        \}\
+\
+        function renderRefuels(container) \{\
+            const data = getFiltered(state.refuels);\
+            if (data.length === 0) \{\
+                container.innerHTML = '<div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 text-center text-slate-500">\uc0\u3652 \u3617 \u3656 \u3617 \u3637 \u3611 \u3619 \u3632 \u3623 \u3633 \u3605 \u3636 \u3585 \u3634 \u3619 \u3648 \u3605 \u3636 \u3617 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609 \u3651 \u3609 \u3594 \u3656 \u3623 \u3591 \u3648 \u3623 \u3621 \u3634 \u3609 \u3637 \u3657 </div>';\
+                return;\
+            \}\
+\
+            let grandTotalLiters = 0; let grandTotalCost = 0;\
+            data.forEach(r => \{ grandTotalLiters += Number(r.liters || 0); grandTotalCost += Number(r.total || 0); \});\
+\
+            let html = `\
+                <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">\
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-center items-start">\
+                        <div class="flex items-center space-x-2 mb-2"><div class="bg-orange-100 p-1.5 rounded-lg text-orange-600"><i data-lucide="droplet" class="w-4 h-4"></i></div><p class="text-xs text-slate-500 font-bold uppercase">\uc0\u3619 \u3634 \u3618 \u3585 \u3634 \u3619 \u3648 \u3605 \u3636 \u3617 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609 \u3619 \u3623 \u3617 </p></div>\
+                        <p class="text-xl font-bold text-slate-800">$\{data.length\} <span class="text-sm font-normal text-slate-500">\uc0\u3619 \u3634 \u3618 \u3585 \u3634 \u3619 </span></p>\
+                    </div>\
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-center items-start">\
+                        <div class="flex items-center space-x-2 mb-2"><div class="bg-blue-100 p-1.5 rounded-lg text-blue-600"><i data-lucide="database" class="w-4 h-4"></i></div><p class="text-xs text-slate-500 font-bold uppercase">\uc0\u3611 \u3619 \u3636 \u3617 \u3634 \u3603 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609 \u3619 \u3623 \u3617 </p></div>\
+                        <p class="text-xl font-bold text-slate-800">$\{formatNumber(grandTotalLiters).replace(/\\.00$/, '')\} <span class="text-sm font-normal text-slate-500">\uc0\u3621 \u3636 \u3605 \u3619 </span></p>\
+                    </div>\
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-center items-start">\
+                        <div class="flex items-center space-x-2 mb-2"><div class="bg-red-100 p-1.5 rounded-lg text-red-600"><i data-lucide="banknote" class="w-4 h-4"></i></div><p class="text-xs text-slate-500 font-bold uppercase">\uc0\u3618 \u3629 \u3604 \u3648 \u3591 \u3636 \u3609 \u3619 \u3623 \u3617 </p></div>\
+                        <p class="text-xl font-bold text-red-600">$\{formatCurrency(grandTotalCost)\}</p>\
+                    </div>\
+                </div>\
+                <div class="space-y-6">\
+            `;\
+\
+            const groupedRefuels = data.reduce((acc, refuel) => \{\
+                if (!acc[refuel.plate]) acc[refuel.plate] = [];\
+                acc[refuel.plate].push(refuel); return acc;\
+            \}, \{\});\
+\
+            for (const plate in groupedRefuels) \{\
+                const refuels = groupedRefuels[plate];\
+                let sumLiters = 0; let sumTotal = 0;\
+                let rows = '';\
+                refuels.forEach(r => \{\
+                    sumLiters += Number(r.liters || 0); sumTotal += Number(r.total || 0);\
+                    rows += `\
+                        <tr class="hover:bg-slate-50 transition-colors">\
+                            <td class="p-4 text-slate-800">$\{formatDisplayDate(r.date)\}</td>\
+                            <td class="p-4 text-right tabular-nums text-slate-600">\uc0\u3647 $\{Number(r.price||0).toFixed(2)\}</td>\
+                            <td class="p-4 text-right tabular-nums text-slate-600">$\{r.liters\} \uc0\u3621 \u3636 \u3605 \u3619 </td>\
+                            <td class="p-4 text-right tabular-nums font-bold text-orange-600">$\{formatCurrency(r.total)\}</td>\
+                            <td class="p-4 text-center space-x-2">\
+                                <button onclick="requestActionPin('openEditModal(\\\\'$\{r.id\}\\\\', \\\\'refuels\\\\')')" class="text-slate-400 hover:text-blue-500 p-1"><i data-lucide="edit" class="w-4 h-4"></i></button>\
+                                <button onclick="requestActionPin('deleteData(\\\\'$\{r.id\}\\\\', \\\\'deleteRefuel\\\\', \\\\'refuel\\\\')')" class="text-slate-400 hover:text-red-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>\
+                            </td>\
+                        </tr>\
+                    `;\
+                \});\
+\
+                const summaryRow = `\
+                    <tr class="bg-orange-50/60 font-bold border-t-2 border-orange-200">\
+                        <td colspan="2" class="p-4 text-right text-slate-700">\uc0\u3619 \u3623 \u3617 \u3607 \u3633 \u3657 \u3591 \u3627 \u3617 \u3604 :</td>\
+                        <td class="p-4 text-right tabular-nums text-slate-800">$\{formatNumber(sumLiters).replace(/\\.00$/, '')\} \uc0\u3621 \u3636 \u3605 \u3619 </td>\
+                        <td class="p-4 text-right tabular-nums text-orange-700">$\{formatCurrency(sumTotal)\}</td>\
+                        <td class="p-4"></td>\
+                    </tr>\
+                `;\
+\
+                html += `\
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">\
+                        <div class="bg-blue-50/50 px-6 py-4 border-b border-slate-200 flex items-center space-x-3">\
+                            <div class="bg-blue-100 p-1.5 rounded-lg"><i data-lucide="truck" class="w-5 h-5 text-blue-600"></i></div>\
+                            <h3 class="text-lg font-bold text-slate-800">\uc0\u3607 \u3632 \u3648 \u3610 \u3637 \u3618 \u3609 \u3619 \u3606 : <span class="text-blue-700">$\{plate\}</span></h3>\
+                            <span class="text-sm font-medium text-slate-500 ml-2">($\{refuels.length\} \uc0\u3619 \u3634 \u3618 \u3585 \u3634 \u3619 )</span>\
+                        </div>\
+                        <div class="overflow-x-auto">\
+                            <table class="w-full min-w-[600px] text-left border-collapse whitespace-nowrap table-fixed">\
+                                <thead>\
+                                    <tr class="bg-white text-slate-500 text-sm uppercase tracking-wider border-b border-slate-200">\
+                                        <th class="p-4 font-semibold w-32">\uc0\u3623 \u3633 \u3609 \u3607 \u3637 \u3656 </th>\
+                                        <th class="p-4 font-semibold text-right w-32">\uc0\u3619 \u3634 \u3588 \u3634 /\u3621 \u3636 \u3605 \u3619 </th>\
+                                        <th class="p-4 font-semibold text-right w-36">\uc0\u3592 \u3635 \u3609 \u3623 \u3609 \u3621 \u3636 \u3605 \u3619 </th>\
+                                        <th class="p-4 font-semibold text-right text-orange-600 w-40">\uc0\u3648 \u3611 \u3655 \u3609 \u3648 \u3591 \u3636 \u3609 \u3619 \u3623 \u3617 </th>\
+                                        <th class="p-4 font-semibold text-center w-24">\uc0\u3592 \u3633 \u3604 \u3585 \u3634 \u3619 </th>\
+                                    </tr>\
+                                </thead>\
+                                <tbody class="divide-y divide-slate-100">$\{rows\}$\{summaryRow\}</tbody>\
+                            </table>\
+                        </div>\
+                    </div>\
+                `;\
+            \}\
+            html += '</div>';\
+            container.innerHTML = html;\
+        \}\
+\
+        function renderVehicles(container) \{\
+            const filteredVehicles = state.vehicles.filter(v => (v.category || 'flatbed') === state.activeCategory);\
+            let html = `\
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">\
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-center items-start">\
+                        <div class="flex items-center space-x-2 mb-2"><div class="bg-indigo-100 p-1.5 rounded-lg text-indigo-600"><i data-lucide="users" class="w-4 h-4"></i></div><p class="text-xs text-slate-500 font-bold uppercase">\uc0\u3619 \u3606 \u3649 \u3621 \u3632 \u3588 \u3609 \u3586 \u3633 \u3610 \u3619 \u3623 \u3617 </p></div>\
+                        <p class="text-xl font-bold text-slate-800">$\{filteredVehicles.length\} <span class="text-sm font-normal text-slate-500">\uc0\u3588 \u3633 \u3609 </span></p>\
+                    </div>\
+                </div>\
+            `;\
+            let rows = '';\
+            filteredVehicles.forEach(v => \{\
+                rows += `\
+                    <tr class="hover:bg-slate-50 transition-colors">\
+                        <td class="p-4 font-medium text-blue-600"><span class="bg-blue-50 px-3 py-1.5 rounded-md border border-blue-100">$\{v.plate\}</span></td>\
+                        <td class="p-4 text-slate-800 font-medium">$\{v.driver\}</td>\
+                        <td class="p-4 text-slate-600">$\{v.type || '-'\}</td>\
+                        <td class="p-4 text-center space-x-2">\
+                            <button onclick="requestActionPin('openEditModal(\\\\'$\{v.id\}\\\\', \\\\'vehicles\\\\')')" class="text-slate-400 hover:text-blue-500 p-1"><i data-lucide="edit" class="w-4 h-4"></i></button>\
+                            <button onclick="requestActionPin('deleteData(\\\\'$\{v.id\}\\\\', \\\\'deleteVehicle\\\\', \\\\'vehicle\\\\')')" class="text-slate-400 hover:text-red-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>\
+                        </td>\
+                    </tr>\
+                `;\
+            \});\
+            if(filteredVehicles.length === 0) rows = '<tr><td colSpan="4" class="p-8 text-center text-slate-500">\uc0\u3652 \u3617 \u3656 \u3617 \u3637 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3619 \u3606 \u3651 \u3609 \u3619 \u3632 \u3610 \u3610 </td></tr>';\
+\
+            html += `\
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">\
+                    <div class="overflow-x-auto">\
+                        <table class="w-full text-left border-collapse whitespace-nowrap">\
+                            <thead>\
+                                <tr class="bg-slate-50 text-slate-500 text-sm uppercase tracking-wider border-b border-slate-200">\
+                                    <th class="p-4 font-semibold">\uc0\u3607 \u3632 \u3648 \u3610 \u3637 \u3618 \u3609 \u3619 \u3606 </th>\
+                                    <th class="p-4 font-semibold">\uc0\u3594 \u3639 \u3656 \u3629 \u3588 \u3609 \u3586 \u3633 \u3610 </th>\
+                                    <th class="p-4 font-semibold">\uc0\u3611 \u3619 \u3632 \u3648 \u3616 \u3607 \u3619 \u3606 </th>\
+                                    <th class="p-4 font-semibold text-center">\uc0\u3592 \u3633 \u3604 \u3585 \u3634 \u3619 </th>\
+                                </tr>\
+                            </thead>\
+                            <tbody class="divide-y divide-slate-100">$\{rows\}</tbody>\
+                        </table>\
+                    </div>\
+                </div>\
+            `;\
+            container.innerHTML = html;\
+        \}\
+\
+        function drawCharts(profitData) \{\
+            if(state.charts.bar) state.charts.bar.destroy();\
+            if(state.charts.line) state.charts.line.destroy();\
+\
+            const labels = profitData.map(d => d.name);\
+            const profit = profitData.map(d => d.\uc0\u3585 \u3635 \u3652 \u3619 );\
+            const fuel = profitData.map(d => d.\uc0\u3588 \u3656 \u3634 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609 );\
+            const revenue = profitData.map(d => d.\uc0\u3618 \u3629 \u3604 \u3619 \u3633 \u3610 );\
+\
+            const ctxBar = document.getElementById('chartBar').getContext('2d');\
+            state.charts.bar = new Chart(ctxBar, \{\
+                type: 'bar',\
+                data: \{ labels: labels, datasets: [ \{ label: '\uc0\u3585 \u3635 \u3652 \u3619 ', data: profit, backgroundColor: '#10b981', borderRadius: 4 \}, \{ label: '\u3588 \u3656 \u3634 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609 ', data: fuel, backgroundColor: '#f59e0b', borderRadius: 4 \} ] \},\
+                options: \{ responsive: true, maintainAspectRatio: false, plugins: \{ legend: \{ position: 'top' \} \}, scales: \{ y: \{ beginAtZero: true \} \} \}\
+            \});\
+\
+            const ctxLine = document.getElementById('chartLine').getContext('2d');\
+            state.charts.line = new Chart(ctxLine, \{\
+                type: 'line',\
+                data: \{ labels: labels, datasets: [ \{ label: '\uc0\u3618 \u3629 \u3604 \u3619 \u3633 \u3610 ', data: revenue, borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.3, borderWidth: 3 \}, \{ label: '\u3585 \u3635 \u3652 \u3619 ', data: profit, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3, borderWidth: 3 \} ] \},\
+                options: \{ responsive: true, maintainAspectRatio: false, plugins: \{ legend: \{ position: 'top' \} \}, scales: \{ y: \{ beginAtZero: true \} \} \}\
+            \});\
+        \}\
+\
+        // --- \uc0\u3619 \u3632 \u3610 \u3610  Form Modal ---\
+        function openFormModal(isEdit = false) \{\
+            state.editMode = isEdit;\
+            const modal = document.getElementById('main-modal');\
+            const form = document.getElementById('main-form');\
+            const catName = state.activeCategory === 'flatbed' ? '\uc0\u3619 \u3606 \u3614 \u3639 \u3657 \u3609 \u3648 \u3619 \u3637 \u3618 \u3610 ' : '\u3619 \u3606 \u3648 \u3595 \u3617 \u3636 \u3604 \u3633 \u3658 \u3617 ';\
+            const titleObj = \{ trips: '\uc0\u3619 \u3634 \u3618 \u3585 \u3634 \u3619 \u3623 \u3636 \u3656 \u3591 \u3591 \u3634 \u3609 ', refuels: '\u3619 \u3634 \u3618 \u3585 \u3634 \u3619 \u3648 \u3605 \u3636 \u3617 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609 ', vehicles: '\u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3619 \u3606 /\u3588 \u3609 \u3586 \u3633 \u3610 ', jobs: '\u3605 \u3633 \u3657 \u3591 \u3588 \u3656 \u3634 \u3648 \u3626 \u3657 \u3609 \u3607 \u3634 \u3591 \u3649 \u3621 \u3632 \u3648 \u3619 \u3607 \u3619 \u3634 \u3588 \u3634 ' \};\
+            document.getElementById('modal-title').innerHTML = (isEdit ? '\uc0\u3649 \u3585 \u3657 \u3652 \u3586 ' : '\u3648 \u3614 \u3636 \u3656 \u3617 ') + titleObj[state.activeTab] + ` <span class="text-sm font-normal text-slate-500 ml-1">($\{catName\})</span>`;\
+            \
+            let html = '';\
+            if (state.activeTab === 'trips' || state.activeTab === 'refuels') \{\
+                let plateOptions = '';\
+                const filteredVehicles = state.vehicles.filter(v => (v.category || 'flatbed') === state.activeCategory);\
+                filteredVehicles.forEach(v => \{\
+                    plateOptions += `<option value="$\{v.plate\}" $\{state.formData.plate === v.plate ? 'selected' : ''\}>$\{v.plate\} ($\{v.driver\})</option>`;\
+                \});\
+                \
+                let defaultDate = state.formData.date || getToday();\
+                if (!isEdit && state.filterYear && state.filterMonth && state.filterPeriod) \{\
+                    const day = state.filterPeriod === 1 ? '01' : '16';\
+                    const y = state.filterYear >= 2500 ? state.filterYear - 543 : state.filterYear; \
+                    defaultDate = `$\{y\}-$\{String(state.filterMonth).padStart(2,'0')\}-$\{day\}`;\
+                \}\
+\
+                html += `\
+                    <div class="grid grid-cols-2 gap-4">\
+                        <div>\
+                            <label class="block text-sm font-medium text-slate-700 mb-1">\uc0\u3623 \u3633 \u3609 \u3607 \u3637 \u3656 </label>\
+                            <input required type="date" id="f_date" value="$\{defaultDate\}" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />\
+                        </div>\
+                        <div>\
+                            <label class="block text-sm font-medium text-slate-700 mb-1">\uc0\u3607 \u3632 \u3648 \u3610 \u3637 \u3618 \u3609 \u3619 \u3606 </label>\
+                            <select required id="f_plate" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white">\
+                                <option value="" disabled $\{!state.formData.plate ? 'selected' : ''\}>\uc0\u3648 \u3621 \u3639 \u3629 \u3585 \u3607 \u3632 \u3648 \u3610 \u3637 \u3618 \u3609 \u3619 \u3606 </option>\
+                                $\{plateOptions\}\
+                            </select>\
+                        </div>\
+                    </div>\
+                `;\
+\
+                if (state.activeTab === 'trips') \{\
+                    let jobOptions = '';\
+                    const filteredJobs = state.jobs.filter(j => (j.category || 'flatbed') === state.activeCategory);\
+                    filteredJobs.forEach(j => \{\
+                        jobOptions += `<option value="$\{j.id\}" data-ori="$\{j.origin\}" data-dest="$\{j.dest\}" data-dist="$\{j.dist\}" data-rev="$\{j.revenue\}">$\{j.origin\} \uc0\u10132  $\{j.dest\} ($\{formatCurrency(j.revenue)\})</option>`;\
+                    \});\
+\
+                    html += `\
+                        <div class="col-span-2 mt-4">\
+                            <label class="block text-sm font-medium text-slate-700 mb-1">\uc0\u55357 \u56525  \u3604 \u3638 \u3591 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3648 \u3626 \u3657 \u3609 \u3607 \u3634 \u3591 \u3617 \u3634 \u3605 \u3619 \u3600 \u3634 \u3609  (\u3605 \u3633 \u3623 \u3594 \u3656 \u3623 \u3618 )</label>\
+                            <select id="job_select" onchange="applyJobSelection()" class="w-full border border-blue-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50 text-blue-800 font-semibold shadow-sm">\
+                                <option value="">-- \uc0\u3614 \u3636 \u3617 \u3614 \u3660 \u3648 \u3629 \u3591  \u3627 \u3619 \u3639 \u3629 \u3648 \u3621 \u3639 \u3629 \u3585 \u3592 \u3634 \u3585 \u3600 \u3634 \u3609 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621  --</option>\
+                                $\{jobOptions\}\
+                            </select>\
+                        </div>\
+                        <div class="col-span-2">\
+                            <label class="block text-sm font-medium text-slate-700 mb-2 flex justify-between items-center">\
+                                <span>\uc0\u3648 \u3626 \u3657 \u3609 \u3607 \u3634 \u3591 \u3623 \u3636 \u3656 \u3591 \u3591 \u3634 \u3609 </span>\
+                                <button type="button" onclick="openMapModal()" class="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full text-xs font-bold flex items-center hover:bg-blue-100">\
+                                    <i data-lucide="map" class="w-3 h-3 mr-1"></i>\uc0\u3588 \u3657 \u3609 \u3627 \u3634 \u3592 \u3634 \u3585 \u3649 \u3612 \u3609 \u3607 \u3637 \u3656 \
+                                </button>\
+                            </label>\
+                            <div class="flex space-x-2 items-center">\
+                                <input required type="text" id="f_origin" value="$\{state.formData.origin || ''\}" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="\uc0\u3605 \u3657 \u3609 \u3607 \u3634 \u3591 " />\
+                                <span class="text-slate-400 font-bold">\uc0\u8594 </span>\
+                                <input required type="text" id="f_dest" value="$\{state.formData.dest || ''\}" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="\uc0\u3611 \u3621 \u3634 \u3618 \u3607 \u3634 \u3591 " />\
+                            </div>\
+                        </div>\
+                        <div class="grid grid-cols-2 gap-4">\
+                            <div>\
+                                <label class="block text-sm font-medium text-slate-700 mb-1 flex justify-between items-center">\
+                                    <span>\uc0\u3619 \u3632 \u3618 \u3632 \u3607 \u3634 \u3591  (\u3585 \u3617 .)</span>\
+                                    <button type="button" onclick="autoCalcDistance()" id="btn-calc-dist" class="text-blue-600 hover:text-blue-800 text-xs font-bold flex items-center">\
+                                        <i data-lucide="map-pin" class="w-3 h-3 mr-1"></i>\uc0\u3588 \u3635 \u3609 \u3623 \u3603 \u3629 \u3633 \u3605 \u3650 \u3609 \u3617 \u3633 \u3605 \u3636 \
+                                    </button>\
+                                </label>\
+                                <input required type="number" id="f_dist" value="$\{state.formData.dist || ''\}" oninput="calcFuelCost()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500" placeholder="\uc0\u3585 \u3619 \u3629 \u3585 \u3648 \u3629 \u3591 \u3627 \u3619 \u3639 \u3629 \u3588 \u3635 \u3609 \u3623 \u3603 " />\
+                            </div>\
+                            <div>\
+                                <label class="block text-sm font-medium text-slate-700 mb-1">\uc0\u3588 \u3656 \u3634 \u3648 \u3607 \u3637 \u3656 \u3618 \u3623  (\u3618 \u3629 \u3604 \u3619 \u3633 \u3610 )</label>\
+                                <input required type="number" id="f_revenue" value="$\{state.formData.revenue || ''\}" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />\
+                            </div>\
+                        </div>\
+                        <div class="grid grid-cols-2 gap-4">\
+                            <div>\
+                                <label class="block text-sm font-medium text-slate-700 mb-1">\uc0\u3629 \u3633 \u3605 \u3619 \u3634 \u3626 \u3636 \u3657 \u3609 \u3648 \u3611 \u3621 \u3639 \u3629 \u3591  (\u3585 \u3617 ./\u3621 \u3636 \u3605 \u3619 )</label>\
+                                <input required type="number" step="0.01" id="f_fuelRate" value="$\{state.formData.fuelRate || ''\}" oninput="calcFuelCost()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="\uc0\u3648 \u3594 \u3656 \u3609  3.5" />\
+                            </div>\
+                            <div>\
+                                <label class="block text-sm font-medium text-slate-700 mb-1">\uc0\u3619 \u3634 \u3588 \u3634 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609  (\u3610 \u3634 \u3607 /\u3621 \u3636 \u3605 \u3619 )</label>\
+                                <input required type="number" step="0.01" id="f_currentFuelPrice" value="$\{state.formData.currentFuelPrice || ''\}" oninput="calcFuelCost()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="\uc0\u3648 \u3594 \u3656 \u3609  32.50" />\
+                            </div>\
+                        </div>\
+                        <div class="grid grid-cols-2 gap-4">\
+                            <div>\
+                                <label class="block text-sm font-medium text-slate-700 mb-1">\uc0\u3588 \u3656 \u3634 \u3609 \u3657 \u3635 \u3617 \u3633 \u3609  (\u3592 \u3656 \u3634 \u3618 ) <span class="text-xs text-slate-400 font-normal ml-1">\u3588 \u3635 \u3609 \u3623 \u3603 \u3652 \u3611 -\u3585 \u3621 \u3633 \u3610 \u3629 \u3633 \u3605 \u3650 \u3609 \u3617 \u3633 \u3605 \u3636 </span></label>\
+                                <input required type="number" step="0.01" id="f_fuelCost" value="$\{state.formData.fuelCost || ''\}" class="w-full border border-blue-300 bg-blue-50/50 text-blue-800 font-medium rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />\
+                            </div>\
+                            <div>\
+                                <label class="block text-sm font-medium text-slate-700 mb-1">\uc0\u3588 \u3656 \u3634 \u3648 \u3610 \u3637 \u3657 \u3618 \u3648 \u3621 \u3637 \u3657 \u3618 \u3591 \u3588 \u3609 \u3586 \u3633 \u3610 </label>\
+                                <input required type="number" id="f_driverFee" value="$\{state.formData.driverFee || ''\}" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />\
+                            </div>\
+                        </div>\
+                    `;\
+                \} else if (state.activeTab === 'refuels') \{\
+                    html += `\
+                        <div class="grid grid-cols-2 gap-4">\
+                            <div>\
+                                <label class="block text-sm font-medium text-slate-700 mb-1">\uc0\u3592 \u3635 \u3609 \u3623 \u3609 \u3621 \u3636 \u3605 \u3619 </label>\
+                                <input required type="number" step="0.01" id="f_liters" value="$\{state.formData.liters || ''\}" oninput="calcTotalRefuel()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />\
+                            </div>\
+                            <div>\
+                                <label class="block text-sm font-medium text-slate-700 mb-1">\uc0\u3619 \u3634 \u3588 \u3634 \u3605 \u3656 \u3629 \u3621 \u3636 \u3605 \u3619 </label>\
+                                <input required type="number" step="0.01" id="f_price" value="$\{state.formData.price || ''\}" oninput="calcTotalRefuel()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />\
+                            </div>\
+                        </div>\
+                        <div id="refuel_estimate" class="p-3 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium text-center mt-4 hidden">\uc0\u3618 \u3629 \u3604 \u3619 \u3623 \u3617 \u3611 \u3619 \u3632 \u3648 \u3617 \u3636 \u3609 : \u3647 0.00</div>\
+                    `;\
+                \}\
+            \} else if (state.activeTab === 'jobs') \{\
+                html += `\
+                    <div class="col-span-2">\
+                        <label class="block text-sm font-medium text-slate-700 mb-2 flex justify-between items-center">\
+                            <span>\uc0\u3648 \u3626 \u3657 \u3609 \u3607 \u3634 \u3591 \u3617 \u3634 \u3605 \u3619 \u3600 \u3634 \u3609 </span>\
+                            <button type="button" onclick="openMapModal()" class="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full text-xs font-bold flex items-center hover:bg-blue-100">\
+                                <i data-lucide="map" class="w-3 h-3 mr-1"></i>\uc0\u3627 \u3634 \u3614 \u3636 \u3585 \u3633 \u3604 \u3592 \u3634 \u3585 \u3649 \u3612 \u3609 \u3607 \u3637 \u3656 \
+                            </button>\
+                        </label>\
+                        <div class="flex space-x-2 items-center">\
+                            <input required type="text" id="f_origin" value="$\{state.formData.origin || ''\}" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="\uc0\u3605 \u3657 \u3609 \u3607 \u3634 \u3591 " />\
+                            <span class="text-slate-400 font-bold">\uc0\u8594 </span>\
+                            <input required type="text" id="f_dest" value="$\{state.formData.dest || ''\}" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="\uc0\u3611 \u3621 \u3634 \u3618 \u3607 \u3634 \u3591 " />\
+                        </div>\
+                    </div>\
+                    <div class="grid grid-cols-2 gap-4 mt-4">\
+                        <div>\
+                            <label class="block text-sm font-medium text-slate-700 mb-1 flex justify-between items-center">\
+                                <span>\uc0\u3619 \u3632 \u3618 \u3632 \u3607 \u3634 \u3591  (\u3585 \u3617 .)</span>\
+                                <button type="button" onclick="autoCalcDistance()" id="btn-calc-dist" class="text-blue-600 hover:text-blue-800 text-xs font-bold flex items-center">\
+                                    <i data-lucide="map-pin" class="w-3 h-3 mr-1"></i>\uc0\u3588 \u3635 \u3609 \u3623 \u3603 \
+                                </button>\
+                            </label>\
+                            <input required type="number" id="f_dist" value="$\{state.formData.dist || ''\}" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500" placeholder="\uc0\u3648 \u3594 \u3656 \u3609  120" />\
+                        </div>\
+                        <div>\
+                            <label class="block text-sm font-medium text-slate-700 mb-1">\uc0\u3648 \u3619 \u3607 \u3588 \u3656 \u3634 \u3648 \u3607 \u3637 \u3656 \u3618 \u3623  (\u3618 \u3629 \u3604 \u3619 \u3633 \u3610 )</label>\
+                            <input required type="number" id="f_revenue" value="$\{state.formData.revenue || ''\}" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="\uc0\u3648 \u3594 \u3656 \u3609  6600" />\
+                        </div>\
+                    </div>\
+                `;\
+            \} else \{\
+                html += `\
+                    <div>\
+                        <label class="block text-sm font-medium text-slate-700 mb-1">\uc0\u3607 \u3632 \u3648 \u3610 \u3637 \u3618 \u3609 \u3619 \u3606 </label>\
+                        <input required type="text" id="f_plate" value="$\{state.formData.plate || ''\}" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="\uc0\u3648 \u3594 \u3656 \u3609  88-2059" />\
+                    </div>\
+                    <div>\
+                        <label class="block text-sm font-medium text-slate-700 mb-1">\uc0\u3594 \u3639 \u3656 \u3629 \u3588 \u3609 \u3586 \u3633 \u3610 </label>\
+                        <input required type="text" id="f_driver" value="$\{state.formData.driver || ''\}" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="\uc0\u3609 \u3634 \u3618  \u3626 \u3617 \u3594 \u3634 \u3618  \u3651 \u3592 \u3604 \u3637 " />\
+                    </div>\
+                    <div>\
+                        <label class="block text-sm font-medium text-slate-700 mb-1">\uc0\u3611 \u3619 \u3632 \u3648 \u3616 \u3607 \u3619 \u3606  (\u3606 \u3657 \u3634 \u3617 \u3637 )</label>\
+                        <input type="text" id="f_type" value="$\{state.formData.type || ''\}" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="\uc0\u3619 \u3606 \u3610 \u3619 \u3619 \u3607 \u3640 \u3585  6 \u3621 \u3657 \u3629 " />\
+                    </div>\
+                `;\
+            \}\
+\
+            html += `\
+                <div class="flex space-x-3 pt-4 border-t border-slate-100 mt-2">\
+                    <button type="button" id="btn-cancel-form" class="flex-1 px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 font-medium">\uc0\u3618 \u3585 \u3648 \u3621 \u3636 \u3585 </button>\
+                    <button type="submit" id="btn-submit-form" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50">\uc0\u3610 \u3633 \u3609 \u3607 \u3638 \u3585 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 </button>\
+                </div>\
+            `;\
+            \
+            form.innerHTML = html;\
+            modal.classList.remove('hidden');\
+            lucide.createIcons();\
+\
+            document.getElementById('btn-cancel-form').onclick = () => modal.classList.add('hidden');\
+            form.onsubmit = submitData;\
+            \
+            if(state.activeTab === 'refuels') calcTotalRefuel(); \
+        \}\
+\
+        document.getElementById('btn-close-modal').onclick = () => document.getElementById('main-modal').classList.add('hidden');\
+\
+        document.getElementById('btn-add-new').onclick = () => \{\
+            state.formData = \{\}; \
+            openFormModal(false);\
+        \};\
+\
+        window.openEditModal = (id, tab) => \{\
+            const list = state[tab];\
+            const item = list.find(i => i.id == id);\
+            if (item) \{\
+                state.formData = \{ ...item \};\
+                if (state.formData.date) state.formData.date = reverseThaiToISO(state.formData.date);\
+                openFormModal(true);\
+            \}\
+        \};\
+\
+        window.applyJobSelection = () => \{\
+            const sel = document.getElementById('job_select');\
+            const opt = sel.options[sel.selectedIndex];\
+            if(opt && opt.value) \{\
+                document.getElementById('f_origin').value = opt.getAttribute('data-ori');\
+                document.getElementById('f_dest').value = opt.getAttribute('data-dest');\
+                document.getElementById('f_dist').value = opt.getAttribute('data-dist');\
+                document.getElementById('f_revenue').value = opt.getAttribute('data-rev');\
+                calcFuelCost(); \
+            \}\
+        \};\
+\
+        window.calcFuelCost = () => \{\
+            const dist = parseFloat(document.getElementById('f_dist').value);\
+            const rate = parseFloat(document.getElementById('f_fuelRate').value);\
+            const price = parseFloat(document.getElementById('f_currentFuelPrice').value);\
+            if (!isNaN(dist) && !isNaN(rate) && !isNaN(price) && rate > 0) \{\
+                document.getElementById('f_fuelCost').value = (((dist * 2) / rate) * price).toFixed(2);\
+            \}\
+        \};\
+\
+        window.calcTotalRefuel = () => \{\
+            const liters = parseFloat(document.getElementById('f_liters')?.value);\
+            const price = parseFloat(document.getElementById('f_price')?.value);\
+            const estDiv = document.getElementById('refuel_estimate');\
+            if(estDiv && !isNaN(liters) && !isNaN(price)) \{\
+                estDiv.classList.remove('hidden');\
+                estDiv.innerText = '\uc0\u3618 \u3629 \u3604 \u3619 \u3623 \u3617 \u3611 \u3619 \u3632 \u3648 \u3617 \u3636 \u3609 : ' + formatCurrency(liters * price);\
+            \} else if(estDiv) \{\
+                estDiv.classList.add('hidden');\
+            \}\
+        \};\
+\
+        window.autoCalcDistance = async () => \{\
+            const ori = document.getElementById('f_origin').value;\
+            const dest = document.getElementById('f_dest').value;\
+            const btn = document.getElementById('btn-calc-dist');\
+            if(!ori || !dest) return alert('\uc0\u3585 \u3619 \u3640 \u3603 \u3634 \u3585 \u3619 \u3629 \u3585 \u3605 \u3657 \u3609 \u3607 \u3634 \u3591 \u3649 \u3621 \u3632 \u3611 \u3621 \u3634 \u3618 \u3607 \u3634 \u3591 \u3585 \u3656 \u3629 \u3609 \u3588 \u3619 \u3633 \u3610 ');\
+\
+            btn.innerHTML = '<i data-lucide="loader" class="w-3 h-3 mr-1 spinner"></i>\uc0\u3585 \u3635 \u3621 \u3633 \u3591 \u3588 \u3635 \u3609 \u3623 \u3603 ...';\
+            lucide.createIcons();\
+            \
+            try \{\
+                const geocode = async (query) => \{\
+                    const match = query.match(/(-?[\\d\\.]+)\\s*,\\s*(-?[\\d\\.]+)/);\
+                    if (match) return \{ lat: match[1], lon: match[2] \};\
+                    const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=1&countrycodes=th');\
+                    const data = await res.json();\
+                    if(data && data.length > 0) return data[0];\
+                    throw new Error("\uc0\u3652 \u3617 \u3656 \u3614 \u3610 \u3626 \u3606 \u3634 \u3609 \u3607 \u3637 \u3656 ");\
+                \};\
+                const [o, d] = await Promise.all([geocode(ori), geocode(dest)]);\
+                const osrmRes = await fetch('https://router.project-osrm.org/route/v1/driving/' + o.lon + ',' + o.lat + ';' + d.lon + ',' + d.lat + '?overview=false');\
+                const osrmData = await osrmRes.json();\
+                \
+                if(osrmData.code === 'Ok') \{\
+                    document.getElementById('f_dist').value = (osrmData.routes[0].distance / 1000).toFixed(0);\
+                    calcFuelCost(); \
+                \} else throw new Error("\uc0\u3588 \u3635 \u3609 \u3623 \u3603 \u3652 \u3617 \u3656 \u3652 \u3604 \u3657 ");\
+            \} catch (e) \{\
+                alert("\uc0\u3648 \u3585 \u3636 \u3604 \u3586 \u3657 \u3629 \u3612 \u3636 \u3604 \u3614 \u3621 \u3634 \u3604 : " + e.message);\
+            \} finally \{\
+                btn.innerHTML = '<i data-lucide="map-pin" class="w-3 h-3 mr-1"></i>\uc0\u3588 \u3635 \u3609 \u3623 \u3603 \u3629 \u3633 \u3605 \u3650 \u3609 \u3617 \u3633 \u3605 \u3636 ';\
+                lucide.createIcons();\
+            \}\
+        \};\
+\
+        async function submitData(e) \{\
+            e.preventDefault();\
+            const btn = document.getElementById('btn-submit-form');\
+            btn.disabled = true;\
+            btn.innerText = '\uc0\u3585 \u3635 \u3621 \u3633 \u3591 \u3610 \u3633 \u3609 \u3607 \u3638 \u3585 ...';\
+\
+            let newData = \{ \
+                id: state.editMode ? state.formData.id : Date.now(),\
+                category: state.editMode ? (state.formData.category || state.activeCategory) : state.activeCategory \
+            \};\
+            const getVal = (id) => document.getElementById(id)?.value;\
+\
+            if (state.activeTab === 'trips' || state.activeTab === 'refuels') \{\
+                newData.date = formatToThaiShort(getVal('f_date'));\
+                newData.plate = getVal('f_plate');\
+            \}\
+\
+            let actionType = '';\
+            if (state.activeTab === 'trips') \{\
+                actionType = state.editMode ? 'editTrip' : 'addTrip';\
+                Object.assign(newData, \{\
+                    origin: getVal('f_origin'), dest: getVal('f_dest'),\
+                    dist: Number(getVal('f_dist')), fuelRate: Number(getVal('f_fuelRate')),\
+                    currentFuelPrice: Number(getVal('f_currentFuelPrice')), fuelCost: Number(getVal('f_fuelCost')),\
+                    driverFee: Number(getVal('f_driverFee')), revenue: Number(getVal('f_revenue'))\
+                \});\
+                newData.profit = newData.revenue - newData.fuelCost - newData.driverFee;\
+                if(state.editMode) state.trips = state.trips.map(t => t.id === newData.id ? newData : t);\
+                else state.trips.unshift(newData);\
+            \} else if (state.activeTab === 'refuels') \{\
+                actionType = state.editMode ? 'editRefuel' : 'addRefuel';\
+                Object.assign(newData, \{ liters: Number(getVal('f_liters')), price: Number(getVal('f_price')) \});\
+                newData.total = newData.liters * newData.price;\
+                if(state.editMode) state.refuels = state.refuels.map(r => r.id === newData.id ? newData : r);\
+                else state.refuels.unshift(newData);\
+            \} else if (state.activeTab === 'vehicles') \{\
+                actionType = state.editMode ? 'editVehicle' : 'addVehicle';\
+                Object.assign(newData, \{ plate: getVal('f_plate'), driver: getVal('f_driver'), type: getVal('f_type') \});\
+                if(state.editMode) state.vehicles = state.vehicles.map(v => v.id === newData.id ? newData : v);\
+                else state.vehicles.unshift(newData);\
+            \} else if (state.activeTab === 'jobs') \{\
+                actionType = state.editMode ? 'editJob' : 'addJob';\
+                Object.assign(newData, \{ \
+                    origin: getVal('f_origin'), dest: getVal('f_dest'), \
+                    dist: Number(getVal('f_dist')), revenue: Number(getVal('f_revenue')) \
+                \});\
+                if(state.editMode) state.jobs = state.jobs.map(j => j.id === newData.id ? newData : j);\
+                else state.jobs.unshift(newData);\
+            \}\
+\
+            if(GAS_WEB_APP_URL && !GAS_WEB_APP_URL.includes("\uc0\u3651 \u3626 \u3656 _URL")) \{\
+                try \{\
+                    // \uc0\u3651 \u3627 \u3657 \u3627 \u3609 \u3657 \u3634 \u3648 \u3623 \u3655 \u3610 \u3651 \u3594 \u3657 \u3591 \u3634 \u3609 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3651 \u3627 \u3617 \u3656 \u3607 \u3633 \u3609 \u3607 \u3637  \u3650 \u3604 \u3618 \u3652 \u3617 \u3656 \u3605 \u3657 \u3629 \u3591 \u3619 \u3629 \u3650 \u3627 \u3621 \u3604 \u3651 \u3627 \u3617 \u3656 \
+                    fetch(GAS_WEB_APP_URL, \{\
+                        method: 'POST',\
+                        body: JSON.stringify(\{ action: actionType, data: newData \}),\
+                        mode: 'no-cors'\
+                    \});\
+                \} catch(e) \{\}\
+            \}\
+\
+            document.getElementById('main-modal').classList.add('hidden');\
+            renderNav();\
+            renderContent();\
+            btn.disabled = false;\
+        \}\
+\
+        window.deleteData = async (id, actionStr, sheetType) => \{\
+            if (!confirm("\uc0\u3588 \u3640 \u3603 \u3605 \u3657 \u3629 \u3591 \u3585 \u3634 \u3619 \u3621 \u3610 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3649 \u3606 \u3623 \u3609 \u3637 \u3657 \u3651 \u3594 \u3656 \u3627 \u3619 \u3639 \u3629 \u3652 \u3617 \u3656 ?")) return;\
+            \
+            document.getElementById('loading-spinner').classList.remove('hidden');\
+            try \{\
+                await fetch(GAS_WEB_APP_URL, \{\
+                    method: 'POST',\
+                    mode: 'no-cors',\
+                    headers: \{ 'Content-Type': 'application/json' \},\
+                    body: JSON.stringify(\{ action: actionStr, id: id, sheetType: sheetType \})\
+                \});\
+                \
+                if (actionStr.includes('Trip')) state.trips = state.trips.filter(i => i.id !== id);\
+                else if (actionStr.includes('Refuel')) state.refuels = state.refuels.filter(i => i.id !== id);\
+                else if (actionStr.includes('Vehicle')) state.vehicles = state.vehicles.filter(i => i.id !== id);\
+                else if (actionStr.includes('Job')) state.jobs = state.jobs.filter(i => i.id !== id);\
+\
+                renderNav();\
+                renderContent();\
+                alert("\uc0\u3621 \u3610 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3626 \u3635 \u3648 \u3619 \u3655 \u3592 !");\
+            \} catch (e) \{\
+                console.error(e);\
+                alert("\uc0\u3648 \u3585 \u3636 \u3604 \u3586 \u3657 \u3629 \u3612 \u3636 \u3604 \u3614 \u3621 \u3634 \u3604 \u3651 \u3609 \u3585 \u3634 \u3619 \u3621 \u3610 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 ");\
+            \} finally \{\
+                document.getElementById('loading-spinner').classList.add('hidden');\
+            \}\
+        \};\
+\
+        window.openMapModal = () => \{\
+            const mapHtml = `\
+                <!DOCTYPE html><html lang="th"><head><meta charset="utf-8">\
+                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />\
+                <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\\/script>\
+                <style>body, html, #map \{ height: 100%; margin: 0; padding: 0; font-family: sans-serif; \} .search-panel \{ position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(255, 255, 255, 0.95); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; \} input, button \{ padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; outline:none; \} button \{ background: #2563eb; color: white; border: none; cursor: pointer; font-weight: bold; \} #status \{ font-size: 12px; text-align: center; \}</style>\
+                </head><body>\
+                <div class="search-panel"><label style="font-size:12px;font-weight:bold;color:#475569;">\uc0\u55357 \u56525  \u3605 \u3657 \u3609 \u3607 \u3634 \u3591 </label><input type="text" id="ori" placeholder="\u3648 \u3594 \u3656 \u3609  \u3626 \u3619 \u3632 \u3610 \u3640 \u3619 \u3637  \u3627 \u3619 \u3639 \u3629  13.7,100.5"><label style="font-size:12px;font-weight:bold;color:#475569;">\u55356 \u57263  \u3611 \u3621 \u3634 \u3618 \u3607 \u3634 \u3591 </label><input type="text" id="dest" placeholder="\u3648 \u3594 \u3656 \u3609  \u3619 \u3632 \u3618 \u3629 \u3591 "><button id="calcBtn">\u3588 \u3657 \u3609 \u3627 \u3634 \u3649 \u3621 \u3632 \u3588 \u3635 \u3609 \u3623 \u3603 \u3619 \u3632 \u3618 \u3632 \u3607 \u3634 \u3591 </button><div id="status"></div></div><div id="map"></div>\
+                <script>\
+                const map = L.map("map").setView([13.75, 100.5], 6);\
+                L.tileLayer("https://\{s\}.tile.openstreetmap.org/\{z\}/\{x\}/\{y\}.png").addTo(map);\
+                let routeLayer = null, markers = [];\
+                async function geocode(q) \{\
+                    const m = q.match(/([\\\\d\\\\.]+)\\\\s*,\\\\s*([\\\\d\\\\.]+)/);\
+                    if (m) return \{ lat: parseFloat(m[1]), lon: parseFloat(m[2]) \};\
+                    const r = await fetch("https://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(q) + "&limit=1&countrycodes=th");\
+                    const d = await r.json();\
+                    if (d && d.length > 0) return d[0];\
+                    throw new Error("\uc0\u3652 \u3617 \u3656 \u3614 \u3610 \u3626 \u3606 \u3634 \u3609 \u3607 \u3637 \u3656 ");\
+                \}\
+                document.getElementById("calcBtn").onclick = async function() \{\
+                    const ori = document.getElementById("ori").value;\
+                    const dest = document.getElementById("dest").value;\
+                    const statusEl = document.getElementById("status");\
+                    if(!ori || !dest) return statusEl.innerText = "\uc0\u3585 \u3619 \u3640 \u3603 \u3634 \u3585 \u3619 \u3629 \u3585 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3651 \u3627 \u3657 \u3588 \u3619 \u3610 ", statusEl.style.color="red";\
+                    statusEl.innerText = "\uc0\u3585 \u3635 \u3621 \u3633 \u3591 \u3588 \u3657 \u3609 \u3627 \u3634 ..."; statusEl.style.color="blue"; this.disabled = true;\
+                    try \{\
+                        const [o, d] = await Promise.all([geocode(ori), geocode(dest)]);\
+                        if(markers.length) \{ markers.forEach(m=>map.removeLayer(m)); markers=[]; \}\
+                        if(routeLayer) map.removeLayer(routeLayer);\
+                        markers.push(L.marker([o.lat, o.lon]).addTo(map).bindPopup("\uc0\u3605 \u3657 \u3609 \u3607 \u3634 \u3591 ").openPopup());\
+                        markers.push(L.marker([d.lat, d.lon]).addTo(map).bindPopup("\uc0\u3611 \u3621 \u3634 \u3618 \u3607 \u3634 \u3591 "));\
+                        statusEl.innerText = "\uc0\u3585 \u3635 \u3621 \u3633 \u3591 \u3604 \u3638 \u3591 \u3648 \u3626 \u3657 \u3609 \u3607 \u3634 \u3591 ...";\
+                        const res = await fetch("https://router.project-osrm.org/route/v1/driving/" + o.lon + "," + o.lat + ";" + d.lon + "," + d.lat + "?overview=full&geometries=geojson");\
+                        const data = await res.json();\
+                        if(data.code === "Ok") \{\
+                            const dist = (data.routes[0].distance / 1000).toFixed(0);\
+                            routeLayer = L.geoJSON(data.routes[0].geometry, \{style: \{color: "#3b82f6", weight: 5\}\}).addTo(map);\
+                            map.fitBounds(routeLayer.getBounds(), \{padding:[50,50]\});\
+                            statusEl.innerText = "\uc0\u3619 \u3632 \u3618 \u3632 \u3607 \u3634 \u3591 : " + dist + " \u3585 \u3617 . (\u3585 \u3635 \u3621 \u3633 \u3591 \u3626 \u3656 \u3591 \u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3585 \u3621 \u3633 \u3610 )";\
+                            statusEl.style.color = "green";\
+                            setTimeout(() => \{ window.parent.postMessage(\{ type: "MAP_SELECTED", dist: dist, origin: ori, dest: dest \}, "*"); \}, 1500);\
+                        \} else throw new Error("\uc0\u3652 \u3617 \u3656 \u3614 \u3610 \u3648 \u3626 \u3657 \u3609 \u3607 \u3634 \u3591 ");\
+                    \} catch(e) \{ statusEl.innerText = e.message; statusEl.style.color="red"; \}\
+                    this.disabled = false;\
+                \};\
+                <\\/script></body></html>\
+            `;\
+            document.getElementById('map-iframe').srcdoc = mapHtml;\
+            document.getElementById('map-modal').classList.remove('hidden');\
+        \};\
+\
+        const closeMapModal = () => document.getElementById('map-modal').classList.add('hidden');\
+        document.getElementById('btn-close-map').onclick = closeMapModal;\
+        document.getElementById('btn-close-map-bottom').onclick = closeMapModal;\
+\
+        window.addEventListener('message', (event) => \{\
+            if (event.data && event.data.type === 'MAP_SELECTED') \{\
+                document.getElementById('f_dist').value = event.data.dist;\
+                document.getElementById('f_origin').value = event.data.origin;\
+                document.getElementById('f_dest').value = event.data.dest;\
+                calcFuelCost();\
+                closeMapModal();\
+            \}\
+        \});\
+\
+        async function initApp() \{\
+            renderNav();\
+            if(!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes("\uc0\u3651 \u3626 \u3656 _URL")) return;\
+\
+            try \{\
+                document.getElementById('loading-spinner').classList.remove('hidden');\
+                const res = await fetch(GAS_WEB_APP_URL);\
+                const data = await res.json();\
+                if(data.status === 'success') \{\
+                    state.trips = data.trips || [];\
+                    state.refuels = data.refuels || [];\
+                    state.vehicles = data.vehicles || [];\
+                    state.jobs = data.jobs || [];\
+                    renderNav();\
+                    renderContent();\
+                \}\
+            \} catch (e) \{ console.error("Load error", e); \}\
+            finally \{\
+                document.getElementById('loading-spinner').classList.add('hidden');\
+            \}\
+        \}\
+\
+        // \uc0\u3648 \u3619 \u3636 \u3656 \u3617 \u3605 \u3657 \u3609 \u3585 \u3634 \u3619 \u3607 \u3635 \u3591 \u3634 \u3609 : \u3649 \u3626 \u3604 \u3591 \u3627 \u3609 \u3657 \u3634  PIN Login \u3648 \u3611 \u3655 \u3609 \u3629 \u3633 \u3609 \u3604 \u3633 \u3610 \u3649 \u3619 \u3585 \
+        document.addEventListener('DOMContentLoaded', () => \{\
+            lucide.createIcons();\
+            showPinModal('login');\
+        \});\
+    </script>\
+</body>\
+</html>}
